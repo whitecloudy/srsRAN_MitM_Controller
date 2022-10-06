@@ -7,94 +7,96 @@
 #include <arpa/inet.h>
 #include <pthread.h>
 
-struct sockaddr_in sa;
-struct sockaddr_in sb;
-struct sockaddr_in a,b;
+#define LOOPBACK_IP ("127.123.123.24")
 
-int fa;
-int fb;
+#define FAKE_UE_PORT (8081)
+#define FAKE_gNB_PORT (9091)
+#define FAKE_UE_SERVER_PORT (8080)
+#define FAKE_gNB_SERVER_PORT (9090)
+
+
+struct sockaddr_in fake_UE_server_addr;
+struct sockaddr_in fake_gNB_server_addr;
+struct sockaddr_in fake_UE_addr, fake_gNB_addr;
+
+int fake_UE_server_sock;
+int fake_gNB_server_sock;
 
 void* worker(void *arg) {
-  int *fsrc, *fdst;
-  struct sockaddr_in *ssrc, *sdst;
+  int *fake_src_sock, *fake_dst_sock;
+  struct sockaddr_in *fake_src_addr, *fake_dst_addr;
 
   printf("Thread Created!\n");
 
   if ((uintptr_t)arg==12) {
-    fsrc=&fa; fdst=&fb;
-    ssrc=&a; sdst=&b;
+    fake_src_sock=&fake_UE_server_sock; 
+    fake_dst_sock=&fake_gNB_server_sock;
+
+    fake_src_addr=&fake_UE_addr;
+    fake_dst_addr=&fake_gNB_addr;
   }
   else { /*(uintptr_t)arg==21*/
-    fsrc=&fb; fdst=&fa;
-    ssrc=&b; sdst=&a;
+    fake_src_sock=&fake_gNB_server_sock; 
+    fake_dst_sock=&fake_UE_server_sock;
+
+    fake_src_addr=&fake_gNB_addr;
+    fake_dst_addr=&fake_UE_addr;
   }
 
   while(1) {
     char buf[65535];
-    socklen_t sn=sizeof(*ssrc);
-    int n=recvfrom(*fsrc,buf,sizeof(buf),0,(struct sockaddr *)ssrc,&sn);
-    //int n=recv(*fsrc,buf,sizeof(buf),0);
-    if(n>0 && sdst->sin_port>0) {
-      sendto(*fdst,buf,n,0,(struct sockaddr *)sdst,sizeof(*sdst));
-      //send(*fdst,buf,n,0);
-      printf("fsrc: %d, fdst: %d, sdst port: %d, ssrc port: %d, size: %d\n", *fsrc, *fdst, sdst->sin_port, ssrc->sin_port, n);
+    socklen_t sn=sizeof(*fake_src_addr);
+    int n=recvfrom(*fake_src_sock,buf,sizeof(buf),0,(struct sockaddr *)fake_src_addr,&sn);
+    //int n=recv(*fake_src_sock,buf,sizeof(buf),0);
+    if(n>0 && fake_dst_addr->sin_port>0) {
+      sendto(*fake_dst_sock,buf,n,0,(struct sockaddr *)fake_dst_addr,sizeof(*fake_dst_addr));
+
+      printf("fake_src_sock: %d, fake_dst_sock: %d, fake_dst_addr port: %d, fake_src_addr port: %d, size: %d\n", *fake_src_sock, *fake_dst_sock, fake_dst_addr->sin_port, fake_src_addr->sin_port, n);
     }
   }
   return NULL;
 };
 
 int main(int argc, char *argv[]) {
-  memset(&a,0,sizeof(struct sockaddr_in));
-  memset(&sa,0,sizeof(struct sockaddr_in));
-  memset(&b,0,sizeof(struct sockaddr_in));
-  memset(&sb,0,sizeof(struct sockaddr_in));
+  memset(&fake_UE_addr,0,sizeof(struct sockaddr_in));
+  memset(&fake_UE_server_addr,0,sizeof(struct sockaddr_in));
+  memset(&fake_gNB_addr,0,sizeof(struct sockaddr_in));
+  memset(&fake_gNB_server_addr,0,sizeof(struct sockaddr_in));
 
-  if (argc!=4) {
-    printf("Usage: %s bind-ip port-a port-b\n",argv[0]);
-    exit(1);
-  }
 
-  else {
-    printf("%s %s %s\n", argv[1], argv[2], argv[3]);
-  }
+  fake_UE_server_sock=socket(AF_INET,SOCK_DGRAM,IPPROTO_IP);
+  fake_gNB_server_sock=socket(AF_INET,SOCK_DGRAM,IPPROTO_IP);
 
-  fa=socket(AF_INET,SOCK_DGRAM,IPPROTO_IP);
-  fb=socket(AF_INET,SOCK_DGRAM,IPPROTO_IP);
+  fake_UE_addr.sin_family=AF_INET;
+  fake_UE_addr.sin_addr.s_addr=inet_addr(LOOPBACK_IP);
+  fake_UE_addr.sin_port=htons(FAKE_UE_PORT);
 
-  a.sin_family=AF_INET;
-  a.sin_addr.s_addr=inet_addr(argv[1]);
-  a.sin_port=htons(8081);
+  fake_gNB_addr.sin_family=AF_INET;
+  fake_gNB_addr.sin_addr.s_addr=inet_addr(LOOPBACK_IP);
+  fake_gNB_addr.sin_port=htons(FAKE_gNB_PORT);
 
-  b.sin_family=AF_INET;
-  b.sin_addr.s_addr=inet_addr(argv[1]);
-  b.sin_port=htons(9091);
+  fake_UE_server_addr.sin_family=AF_INET;
+  fake_UE_server_addr.sin_addr.s_addr=inet_addr(LOOPBACK_IP);
+  fake_UE_server_addr.sin_port=htons(FAKE_UE_SERVER_PORT);
 
-  sa.sin_family=AF_INET;
-  sa.sin_addr.s_addr=inet_addr(argv[1]);
-  //sa.sin_addr.s_addr=htonl(INADDR_ANY);
-  sa.sin_port=htons(atoi(argv[2]));
-  if(bind(fa,(struct sockaddr *)&sa,sizeof(sa))==-1) {
-	  printf("Bind fa Error!\n");
+  if(bind(fake_UE_server_sock,(struct sockaddr *)&fake_UE_server_addr,sizeof(fake_UE_server_addr))==-1) {
+	  printf("Bind fake_UE_server_sock Error!\n");
     exit(2);
   }
 
-  sb.sin_family=AF_INET;
-  sb.sin_addr.s_addr=inet_addr(argv[1]);
-  //sb.sin_addr.s_addr=htonl(INADDR_ANY);
-  sb.sin_port=htons(atoi(argv[3]));
-  if(bind(fb,(struct sockaddr *)&sb,sizeof(sb))==-1) {
-	  printf("Bind fb Error!\n");
+  fake_gNB_server_addr.sin_family=AF_INET;
+  fake_gNB_server_addr.sin_addr.s_addr=inet_addr(LOOPBACK_IP);
+  fake_gNB_server_addr.sin_port=htons(FAKE_gNB_SERVER_PORT);
+  if(bind(fake_gNB_server_sock,(struct sockaddr *)&fake_gNB_server_addr,sizeof(fake_gNB_server_addr))==-1) {
+	  printf("Bind fake_gNB_server_sock Error!\n");
     exit(3);
   }
 
-  //connect(fa, (struct sockaddr*)&sa, sizeof(sa));
-  //connect(fb, (struct sockaddr*)&sb, sizeof(sb));
+  pthread_t UE2gNB_proc, gNB2UE_proc;
+  pthread_create(&UE2gNB_proc,NULL,worker,(void*)12);
+  pthread_create(&gNB2UE_proc,NULL,worker,(void*)21);
 
-  pthread_t ab,ba;
-  pthread_create(&ab,NULL,worker,(void*)12);
-  pthread_create(&ba,NULL,worker,(void*)21);
-
-  pthread_join(ab, NULL);
-  pthread_join(ba, NULL);
+  pthread_join(UE2gNB_proc, NULL);
+  pthread_join(gNB2UE_proc, NULL);
   return 0;
 }
