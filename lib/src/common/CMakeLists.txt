@@ -52,13 +52,7 @@ set(SOURCES arch_select.cc
 # Avoid warnings caused by libmbedtls about deprecated functions
 set_source_files_properties(security.cc PROPERTIES COMPILE_FLAGS -Wno-deprecated-declarations)
 
-message("Wat?")
-message(${CMAKE_BINARY_DIR})
-
-
 add_library(srsran_common STATIC ${SOURCES})
-#add_custom_target(gen_build_info COMMAND cmake -P ${CMAKE_BINARY_DIR}/SRSRANbuildinfo.cmake)
-#add_dependencies(srsran_common gen_build_info)
 
 target_include_directories(srsran_common PUBLIC ${PROJECT_SOURCE_DIR}/lib/include)
 
@@ -67,7 +61,4 @@ add_executable(arch_select arch_select.cc)
 target_include_directories(srsran_common PUBLIC ${SEC_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR} ${BACKWARD_INCLUDE_DIRS})
 target_link_libraries(srsran_common srsran_phy support srslog ${SEC_LIBRARIES} ${BACKWARD_LIBRARIES} ${SCTP_LIBRARIES})
 target_compile_definitions(srsran_common PRIVATE ${BACKWARD_DEFINITIONS})
-
-#install(TARGETS srsran_common DESTINATION ${LIBRARY_DIR} OPTIONAL)
-
 
