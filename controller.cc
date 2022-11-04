@@ -1,11 +1,16 @@
-#include <stdio.h>
-#include <stdint.h>
-#include <string.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdint>
+#include <cstring>
+#include <cstdlib>
+#include <iostream>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <pthread.h>
+
+#include "mitm_lib/asn1/rrc_nr.h"
+#include "mitm_lib/asn1/asn1_utils.h"
+#include "mitm_lib/common/byte_buffer.h"
 
 #define LOOPBACK_IP ("127.123.123.24")
 
@@ -14,6 +19,11 @@
 #define FAKE_UE_SERVER_PORT (8080)
 #define FAKE_gNB_SERVER_PORT (9090)
 
+enum RELAY_DIR 
+{
+  FROM_UE,
+  FROM_gNB
+};
 
 struct sockaddr_in fake_UE_server_addr;
 struct sockaddr_in fake_gNB_server_addr;
@@ -23,31 +33,55 @@ int fake_UE_server_sock;
 int fake_gNB_server_sock;
 
 void* worker(void *arg) {
+  printf("Thread Created!\n");
+
   int *fake_src_sock, *fake_dst_sock;
   struct sockaddr_in *fake_src_addr, *fake_dst_addr;
 
-  printf("Thread Created!\n");
+  enum RELAY_DIR dir_v = *(enum RELAY_DIR *)arg;
 
-  if ((uintptr_t)arg==12) {
+  if (dir_v==FROM_UE) {
     fake_src_sock=&fake_UE_server_sock; 
     fake_dst_sock=&fake_gNB_server_sock;
 
     fake_src_addr=&fake_UE_addr;
     fake_dst_addr=&fake_gNB_addr;
   }
-  else { /*(uintptr_t)arg==21*/
+  else if (dir_v==FROM_gNB) { /*(uintptr_t)arg==21*/
     fake_src_sock=&fake_gNB_server_sock; 
     fake_dst_sock=&fake_UE_server_sock;
 
     fake_src_addr=&fake_gNB_addr;
     fake_dst_addr=&fake_UE_addr;
+  }else {
+    std::cerr << "Wrong argument to worker" << std::endl;
+    return NULL;
   }
 
   while(1) {
-    char buf[65535];
+    uint8_t buf[65535];
     socklen_t sn=sizeof(*fake_src_addr);
     int n=recvfrom(*fake_src_sock,buf,sizeof(buf),0,(struct sockaddr *)fake_src_addr,&sn);
     //int n=recv(*fake_src_sock,buf,sizeof(buf),0);
+    if(dir_v == FROM_UE){
+      struct asn1::rrc_nr::ul_dcch_msg_s ul_dcch_msg;
+      {
+        asn1::cbit_ref bref(buf, n);
+        if (ul_dcch_msg.unpack(bref) != asn1::SRSASN_SUCCESS or
+            ul_dcch_msg.msg.type().value != asn1::rrc_nr::ul_dcch_msg_type_c::types_opts::c1)
+        {
+          std::cerr<< "Failed to unpack UL-DCCH message" << std::endl;
+          return NULL;
+        }
+      }
+      asn1::json_writer json_buf;
+      asn1::json_writer & json_buf_p = json_buf;
+      ul_dcch_msg.to_json(json_buf_p);
+      std::cout << "Read from UE" << std::endl;
+      std::cout << json_buf.to_string() <<std::endl;
+    }
+
+
     if(n>0 && fake_dst_addr->sin_port>0) {
       sendto(*fake_dst_sock,buf,n,0,(struct sockaddr *)fake_dst_addr,sizeof(*fake_dst_addr));
 
@@ -62,7 +96,6 @@ int main(int argc, char *argv[]) {
   memset(&fake_UE_server_addr,0,sizeof(struct sockaddr_in));
   memset(&fake_gNB_addr,0,sizeof(struct sockaddr_in));
   memset(&fake_gNB_server_addr,0,sizeof(struct sockaddr_in));
-
 
   fake_UE_server_sock=socket(AF_INET,SOCK_DGRAM,IPPROTO_IP);
   fake_gNB_server_sock=socket(AF_INET,SOCK_DGRAM,IPPROTO_IP);
@@ -93,8 +126,10 @@ int main(int argc, char *argv[]) {
   }
 
   pthread_t UE2gNB_proc, gNB2UE_proc;
-  pthread_create(&UE2gNB_proc,NULL,worker,(void*)12);
-  pthread_create(&gNB2UE_proc,NULL,worker,(void*)21);
+  enum RELAY_DIR argv1 = FROM_UE;
+  enum RELAY_DIR argv2 = FROM_gNB;
+  pthread_create(&UE2gNB_proc, NULL, worker, (void*)(&argv1));
+  pthread_create(&gNB2UE_proc, NULL, worker, (void*)(&argv2));
 
   pthread_join(UE2gNB_proc, NULL);
   pthread_join(gNB2UE_proc, NULL);
