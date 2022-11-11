@@ -45,9 +45,11 @@ endif(POLARSSL_FOUND)
 
 set (EXEC_LIB_LIST  rrc_nr_asn1
                     asn1_utils
-                    srsran_common)
+                    srsran_common
+                    controller_src)
 
 add_subdirectory(lib)
+add_subdirectory(src)
 
 add_executable(mitm controller.cc)
 target_link_libraries(mitm pthread ${EXEC_LIB_LIST})

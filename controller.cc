@@ -8,9 +8,9 @@
 #include <arpa/inet.h>
 #include <pthread.h>
 
-#include "mitm_lib/asn1/rrc_nr.h"
-#include "mitm_lib/asn1/asn1_utils.h"
-#include "mitm_lib/common/byte_buffer.h"
+#include "src/ue_packet_handler.h"
+#include "src/gnb_packet_handler.h"
+
 
 #define LOOPBACK_IP ("127.123.123.24")
 
@@ -21,8 +21,8 @@
 
 enum RELAY_DIR 
 {
-  FROM_UE,
-  FROM_gNB
+  FROM_FAKE_UE,
+  FROM_FAKE_gNB
 };
 
 struct sockaddr_in fake_UE_server_addr;
@@ -40,14 +40,14 @@ void* worker(void *arg) {
 
   enum RELAY_DIR dir_v = *(enum RELAY_DIR *)arg;
 
-  if (dir_v==FROM_UE) {
+  if (dir_v==FROM_FAKE_UE) {
     fake_src_sock=&fake_UE_server_sock; 
     fake_dst_sock=&fake_gNB_server_sock;
 
     fake_src_addr=&fake_UE_addr;
     fake_dst_addr=&fake_gNB_addr;
   }
-  else if (dir_v==FROM_gNB) { /*(uintptr_t)arg==21*/
+  else if (dir_v==FROM_FAKE_gNB) { /*(uintptr_t)arg==21*/
     fake_src_sock=&fake_gNB_server_sock; 
     fake_dst_sock=&fake_UE_server_sock;
 
@@ -61,26 +61,19 @@ void* worker(void *arg) {
   while(1) {
     uint8_t buf[65535];
     socklen_t sn=sizeof(*fake_src_addr);
+    asn1::json_writer * packet_json_p = NULL;
     int n=recvfrom(*fake_src_sock,buf,sizeof(buf),0,(struct sockaddr *)fake_src_addr,&sn);
     //int n=recv(*fake_src_sock,buf,sizeof(buf),0);
-    if(dir_v == FROM_UE){
-      struct asn1::rrc_nr::ul_dcch_msg_s ul_dcch_msg;
-      {
-        asn1::cbit_ref bref(buf, n);
-        if (ul_dcch_msg.unpack(bref) != asn1::SRSASN_SUCCESS or
-            ul_dcch_msg.msg.type().value != asn1::rrc_nr::ul_dcch_msg_type_c::types_opts::c1)
-        {
-          std::cerr<< "Failed to unpack UL-DCCH message" << std::endl;
-          return NULL;
-        }
-      }
-      asn1::json_writer json_buf;
-      asn1::json_writer & json_buf_p = json_buf;
-      ul_dcch_msg.to_json(json_buf_p);
-      std::cout << "Read from UE" << std::endl;
-      std::cout << json_buf.to_string() <<std::endl;
+    if(dir_v == FROM_FAKE_UE){  //Target gNB's packet is arrive here
+      packet_json_p = gNB::decode_packet(buf, n);
+    }else if(dir_v ==FROM_FAKE_gNB){  //Target UE's packet is arrive here
+      packet_json_p = UE::decode_packet(buf, n);
+    }else{
+      std::cerr << "Error: Undefined dir_v!"<< std::endl;
     }
 
+    std::cout << packet_json_p->to_string() << std::endl;
+    delete packet_json_p;
 
     if(n>0 && fake_dst_addr->sin_port>0) {
       sendto(*fake_dst_sock,buf,n,0,(struct sockaddr *)fake_dst_addr,sizeof(*fake_dst_addr));
@@ -126,8 +119,8 @@ int main(int argc, char *argv[]) {
   }
 
   pthread_t UE2gNB_proc, gNB2UE_proc;
-  enum RELAY_DIR argv1 = FROM_UE;
-  enum RELAY_DIR argv2 = FROM_gNB;
+  enum RELAY_DIR argv1 = FROM_FAKE_UE;
+  enum RELAY_DIR argv2 = FROM_FAKE_gNB;
   pthread_create(&UE2gNB_proc, NULL, worker, (void*)(&argv1));
   pthread_create(&gNB2UE_proc, NULL, worker, (void*)(&argv2));
 
