@@ -7,6 +7,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <pthread.h>
+#include <mutex>
 
 #include "src/ue_packet_handler.h"
 #include "src/gnb_packet_handler.h"
@@ -29,10 +30,18 @@ struct sockaddr_in fake_UE_server_addr;
 struct sockaddr_in fake_gNB_server_addr;
 struct sockaddr_in fake_UE_addr, fake_gNB_addr;
 
+struct sockaddr_in backend_addr;
+
 int fake_UE_server_sock;
 int fake_gNB_server_sock;
 
+int backend_sock;
+
+int msg_count = 6;
+std::string packet2send = "[";
+
 void* worker(void *arg) {
+  static std::mutex m;
   printf("Thread Created!\n");
 
   int *fake_src_sock, *fake_dst_sock;
@@ -72,7 +81,34 @@ void* worker(void *arg) {
       std::cerr << "Error: Undefined dir_v!"<< std::endl;
     }
 
-    std::cout << packet_json_p->to_string() << std::endl;
+    //std::cout << packet_json_p->to_string() << std::endl;
+    m.lock();
+    if(msg_count > 0)
+    {
+      std::cout << msg_count << std::endl;
+      if(msg_count != 6)
+        packet2send += ',';
+      
+      std::string str = packet_json_p->to_string();
+
+      packet2send += str.substr(1, str.length()-2);
+
+
+      msg_count -= 1;
+
+      if(msg_count == 0)
+      {
+        msg_count -= 1;
+        packet2send += ']';
+        //std::cout << packet2send << std::endl;
+        //std::cout << "hello?" << std::endl;
+        std::cout << packet2send << std::endl;
+        
+        sendto(backend_sock, packet2send.c_str(), packet2send.length() ,0,(struct sockaddr *)&backend_addr,sizeof(backend_addr));
+      }
+    }
+    m.unlock();
+    
     delete packet_json_p;
 
     if(n>0 && fake_dst_addr->sin_port>0) {
@@ -92,6 +128,7 @@ int main(int argc, char *argv[]) {
 
   fake_UE_server_sock=socket(AF_INET,SOCK_DGRAM,IPPROTO_IP);
   fake_gNB_server_sock=socket(AF_INET,SOCK_DGRAM,IPPROTO_IP);
+  backend_sock=socket(AF_INET,SOCK_DGRAM,IPPROTO_IP);
 
   fake_UE_addr.sin_family=AF_INET;
   fake_UE_addr.sin_addr.s_addr=inet_addr(LOOPBACK_IP);
@@ -104,6 +141,10 @@ int main(int argc, char *argv[]) {
   fake_UE_server_addr.sin_family=AF_INET;
   fake_UE_server_addr.sin_addr.s_addr=inet_addr(LOOPBACK_IP);
   fake_UE_server_addr.sin_port=htons(FAKE_UE_SERVER_PORT);
+
+  backend_addr.sin_family=AF_INET;
+  backend_addr.sin_addr.s_addr = inet_addr("127.0.0.4");
+  backend_addr.sin_port = htons(8000);
 
   if(bind(fake_UE_server_sock,(struct sockaddr *)&fake_UE_server_addr,sizeof(fake_UE_server_addr))==-1) {
 	  printf("Bind fake_UE_server_sock Error!\n");
