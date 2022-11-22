@@ -51,6 +51,15 @@ SRSASN_CODE registration_type_5gs_t::unpack(asn1::cbit_ref& bref)
   return SRSASN_SUCCESS;
 }
 
+void        registration_type_5gs_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_str("Follow-on request bit(FOR)", follow_on_request_bit.to_string());
+  j.write_str("5GS registration type value", registration_type.to_string());
+  j.end_obj();
+}
+
+
 const char* registration_type_5gs_t::registration_type_type_::to_string() const
 {
   switch (value) {
@@ -95,6 +104,14 @@ SRSASN_CODE key_set_identifier_t::unpack(asn1::cbit_ref& bref)
   HANDLE_CODE(security_context_flag.unpack(bref));
   HANDLE_CODE(nas_key_set_identifier.unpack(bref));
   return SRSASN_SUCCESS;
+}
+
+void key_set_identifier_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_str("Security context flag", security_context_flag.to_string()); 
+  j.write_str("Nas key set identifier", nas_key_set_identifier.to_string()); 
+  j.end_obj();
 }
 
 const char* key_set_identifier_t::security_context_flag_type_::to_string() const
@@ -236,6 +253,59 @@ SRSASN_CODE mobile_identity_5gs_t::unpack(asn1::cbit_ref& bref)
   }
   return SRSASN_SUCCESS;
 }
+
+void        mobile_identity_5gs_t::to_json(json_writer& j)
+{
+  j.start_obj();
+  j.write_str("Type of identity", type_.to_string());
+  unique_byte_buffer_t buf = srsran::make_byte_buffer();
+  asn1::bit_ref bref(buf->msg, buf->get_tailroom());
+  
+  switch (type_) {
+    case identity_types::no_identity:
+      break;
+    case identity_types::suci: {
+      suci_s* choice = srslog::detail::any_cast<suci_s>(&choice_container);
+      choice->pack(bref, bref);
+      break;
+    }
+    case identity_types::guti_5g: {
+      guti_5g_s* choice = srslog::detail::any_cast<guti_5g_s>(&choice_container);
+      choice->pack(bref, bref);
+      break;
+    }
+    case identity_types::imei: {
+      imei_s* choice = srslog::detail::any_cast<imei_s>(&choice_container);
+      choice->pack(bref, bref);
+      break;
+    }
+    case identity_types::s_tmsi_5g: {
+      s_tmsi_5g_s* choice = srslog::detail::any_cast<s_tmsi_5g_s>(&choice_container);
+      choice->pack(bref, bref);
+      break;
+    }
+    case identity_types::imeisv: {
+      imeisv_s* choice = srslog::detail::any_cast<imeisv_s>(&choice_container);
+      choice->pack(bref, bref);
+      break;
+    }
+    case identity_types::mac_address: {
+      mac_address_s* choice = srslog::detail::any_cast<mac_address_s>(&choice_container);
+      choice->pack(bref, bref);
+      break;
+    }
+    case identity_types::eui_64: {
+      eui_64_s* choice = srslog::detail::any_cast<eui_64_s>(&choice_container);
+      choice->pack(bref, bref);
+      break;
+    }
+    default:
+      log_invalid_choice_id(type_, "5G NAS ID TYPE");
+  }
+  j.write_str(octstring_to_string(buf->msg, buf->N_bytes));
+  j.end_obj();
+}
+
 
 const char* mobile_identity_5gs_t::identity_types_::to_string() const
 {
@@ -546,6 +616,33 @@ SRSASN_CODE capability_5gmm_t::unpack(asn1::cbit_ref& bref)
   return SRSASN_SUCCESS;
 }
 
+void capability_5gmm_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_bool("SGC", sgc);
+  j.write_bool("5G-IPHC-CP CIoT", iphc_cp_c_io_t_5g);
+  j.write_bool("N3 data", n3_data);
+  j.write_bool("5G-CP CIoT", cp_c_io_t_5g);
+  j.write_bool("RestrictEC", restrict_ec);
+  j.write_bool("LPP", lpp);
+  j.write_bool("HO attach", ho_attach);
+  j.write_bool("S1 mode ", s1_mode);
+  j.write_bool("RACS", racs);
+  j.write_bool("NSSAA", nssaa);
+  j.write_bool("5G-LCS", lcs_5g);
+  j.write_bool("V2XCNPC5", v2_xcnpc5);
+  j.write_bool("V2XCEPC5", v2_xcepc5);
+  j.write_bool("V2X", v2_x);
+  j.write_bool("5G-UP CIoT", up_c_io_t_5g);
+  j.write_bool("5GSRVCC", srvcc_5g);
+  j.write_bool("5G-EHC-CP CIoT", ehc_cp_c_io_t_5g);
+  j.write_bool("multipleUP", multiple_up);
+  j.write_bool("WUSA", wusa);
+  j.write_bool("CAG", cag);
+  j.end_obj();
+}
+
+
 // IE: UE security capability
 // Reference: 9.11.3.54
 SRSASN_CODE ue_security_capability_t::pack(asn1::bit_ref& bref)
@@ -655,6 +752,49 @@ SRSASN_CODE ue_security_capability_t::unpack(asn1::cbit_ref& bref)
   return SRSASN_SUCCESS;
 }
 
+void ue_security_capability_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_bool("5G-EA0", ea0_5g_supported);
+  j.write_bool("128-5G-EA1", ea1_128_5g_supported);
+  j.write_bool("128-5G-EA2", ea2_128_5g_supported);
+  j.write_bool("128-5G-EA3", ea3_128_5g_supported);
+  j.write_bool("5G-EA4", ea4_5g_supported);
+  j.write_bool("5G-EA5", ea5_5g_supported);
+  j.write_bool("5G-EA6", ea6_5g_supported);
+  j.write_bool("5G-EA7", ea7_5g_supported);
+  j.write_bool("5G-IA0", ia0_5g_supported);
+  j.write_bool("128-5G-IA1", ia1_128_5g_supported);
+  j.write_bool("128-5G-IA2", ia2_128_5g_supported);
+  j.write_bool("128-5G-IA3", ia3_128_5g_supported);
+  j.write_bool("5G-IA4", ia4_5g_supported);
+  j.write_bool("5G-IA5", ia5_5g_supported);
+  j.write_bool("5G-IA6", ia6_5g_supported);
+  j.write_bool("5G-IA7", ia7_5g_supported);
+  if(eps_caps_present)
+  {    
+    j.write_bool("EEA0", eea0_supported);
+    j.write_bool("128-EEA1", eea1_128_supported);
+    j.write_bool("128-EEA2", eea2_128_supported);
+    j.write_bool("128-EEA3", eea3_128_supported);
+    j.write_bool("EEA4", eea4_supported);
+    j.write_bool("EEA5", eea5_supported);
+    j.write_bool("EEA6", eea6_supported);
+    j.write_bool("EEA7", eea7_supported);
+    j.write_bool("EIA0", eia0_supported);
+    j.write_bool("128-EIA1", eia1_128_supported);
+    j.write_bool("128-EIA2", eia2_128_supported);
+    j.write_bool("128-EIA3", eia3_128_supported);
+    j.write_bool("EIA4", eia4_supported);
+    j.write_bool("EIA5", eia5_supported);
+    j.write_bool("EIA6", eia6_supported);
+    j.write_bool("EIA7", eia7_supported);
+  }
+
+
+  j.end_obj();
+}
+
 // IE: NSSAI
 // Reference: 9.11.3.37
 SRSASN_CODE nssai_t::pack(asn1::bit_ref& bref)
@@ -697,6 +837,15 @@ SRSASN_CODE nssai_t::unpack(asn1::cbit_ref& bref)
   return SRSASN_SUCCESS;
 }
 
+void        nssai_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+  for (auto& s_nssai : s_nssai_list) {
+    s_nssai.to_json(j);
+  }
+  j.end_obj();
+}
+
 // IE: 5GS tracking area identity
 // Reference: 9.11.3.8
 SRSASN_CODE tracking_area_identity_5gs_t::pack(asn1::bit_ref& bref)
@@ -713,6 +862,26 @@ SRSASN_CODE tracking_area_identity_5gs_t::unpack(asn1::cbit_ref& bref)
   unpack_mcc_mnc(mcc.data(), mnc.data(), bref);
   HANDLE_CODE(bref.unpack(tac, 3 * 8));
   return SRSASN_SUCCESS;
+}
+
+void        tracking_area_identity_5gs_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+  uint32_t mnc_v = 0;
+  uint32_t mcc_v = 0;
+  for (int j = 0; j < 3; j++)
+  {
+    mcc_v <<= 8;
+    mcc_v += mcc[j];
+    mnc_v <<= 8;
+    mnc_v += mnc[j];
+  }
+  j.write_int("MCC", mcc_v);
+  j.write_int("MNC", mnc_v);
+
+  j.write_int("TAC", tac);
+
+  j.end_obj();
 }
 
 // IE: S1 UE network capability
@@ -914,6 +1083,82 @@ SRSASN_CODE s1_ue_network_capability_t::unpack(asn1::cbit_ref& bref)
   return SRSASN_SUCCESS;
 }
 
+void        s1_ue_network_capability_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+
+  j.write_bool("EEA0", eea0_supported);
+  j.write_bool("128-EEA1", eea1_128_supported);
+  j.write_bool("128-EEA2", eea2_128_supported);
+  j.write_bool("128-EEA3", eea3_128_supported);
+  j.write_bool("EEA4", eea4_supported);
+  j.write_bool("EEA5", eea5_supported);
+  j.write_bool("EEA6", eea6_supported);
+  j.write_bool("EEA7", eea7_supported);
+  j.write_bool("EIA0", eia0_supported);
+
+  j.write_bool("128-EIA1", eia1_128_supported);
+  j.write_bool("128-EIA2", eia2_128_supported);
+  j.write_bool("128-EIA3", eia3_128_supported);
+  j.write_bool("EIA4", eia4_supported);
+  j.write_bool("EIA5", eia5_supported);
+  j.write_bool("EIA6", eia6_supported);
+  j.write_bool("EIA7", eia7_supported);
+
+  j.write_bool("UEA0", uea0_supported);
+  j.write_bool("UEA1", uea1_128_supported);
+  j.write_bool("UEA2", uea2_128_supported);
+  j.write_bool("UEA3", uea3_128_supported);
+  j.write_bool("UEA4", uea4_supported);
+  j.write_bool("UEA5", uea5_supported);
+  j.write_bool("UEA6", uea6_supported);
+  j.write_bool("UEA7", uea7_supported);
+
+  j.write_bool("UCS2", ucs2_support);
+  j.write_bool("UIA1", uia1_128_supported);
+  j.write_bool("UIA2", uia2_128_supported);
+  j.write_bool("UIA3", uia3_128_supported);
+  j.write_bool("UIA4", uia4_supported);
+  j.write_bool("UIA5", uia5_supported);
+  j.write_bool("UIA6", uia6_supported);
+  j.write_bool("UIA7", uia7_supported);
+
+  j.write_bool("ProSe-dd", pro_se_dd_supported);
+  j.write_bool("ProSe", pro_se_supported);
+  j.write_bool("H.245-ASH", h245_ash_supported);
+  j.write_bool("ACC-CSFB", acc_csfb_supported);
+  j.write_bool("LPP", llp_supported);
+  j.write_bool("LCS", lcs_supported);
+  j.write_bool("1xSRVCC", srvcc_capability_supported);
+  j.write_bool("NF", nf_capability_supported);
+
+  j.write_bool("ePCO", e_pco_supported);
+  j.write_bool("HC-CP CIoT", hc_cp_c_io_t_supported);
+  j.write_bool("ERw/oPDN", e_rw_o_pdn_supported);
+  j.write_bool("S1-U data", s1_u_data_supported);
+  j.write_bool("UP CIoT", up_c_io_t_supported);
+  j.write_bool("CP CIoT", cp_c_io_t_supported);
+  j.write_bool("Prose-relay", pro_se_relay_supported);
+
+  j.write_bool("ProSe-dc", pro_se_dc_supported);
+  j.write_bool("15 bearers", max_15_eps_bearer_supported);
+  j.write_bool("SGC", sgc_supported);
+  j.write_bool("N1mode", n1mode_supported); 
+  j.write_bool("DCNR", dcnr_supported);
+  j.write_bool("CP backoff", cp_backoff_supported);
+  j.write_bool("RestrictEC", restrict_ec_supported);
+  j.write_bool("V2X PC5", v2_x_pc5_supported);
+  j.write_bool("multipleDRB", multiple_drb_supported);
+
+  j.write_bool("V2X NR-PC5", nr_pc5_supported);
+  j.write_bool("UP-MT-EDT", up_mt_edt_supported);
+  j.write_bool("CP-MT-EDT", cp_mt_edt_supported);
+  j.write_bool("WUSA", wus_supported);
+  j.write_bool("RACS", racs_supported);
+
+  j.end_obj();
+}
+
 // IE: Uplink data status
 // Reference: 9.11.3.57
 SRSASN_CODE uplink_data_status_t::pack(asn1::bit_ref& bref)
@@ -951,6 +1196,7 @@ SRSASN_CODE uplink_data_status_t::pack(asn1::bit_ref& bref)
   return SRSASN_SUCCESS;
 }
 
+
 // IE: Uplink data status
 // Reference: 9.11.3.57
 SRSASN_CODE uplink_data_status_t::unpack(asn1::cbit_ref& bref)
@@ -983,6 +1229,30 @@ SRSASN_CODE uplink_data_status_t::unpack(asn1::cbit_ref& bref)
     bref.advance_bits((length - 2) * 8);
   }
   return SRSASN_SUCCESS;
+}
+
+void        uplink_data_status_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+
+  j.write_bool("psi(7)",psi_7);
+  j.write_bool("psi(6)",psi_6);
+  j.write_bool("psi(5)",psi_5);
+  j.write_bool("psi(4)",psi_4);
+  j.write_bool("psi(3)",psi_3);
+  j.write_bool("psi(2)",psi_2);
+  j.write_bool("psi(1)",psi_1);
+  j.write_bool("psi(0)",psi_0);
+  j.write_bool("psi(15)",psi_15);
+  j.write_bool("psi(14)",psi_14);
+  j.write_bool("psi(13)",psi_13);
+  j.write_bool("psi(12)",psi_12);
+  j.write_bool("psi(11)",psi_11);
+  j.write_bool("psi(10)",psi_10);
+  j.write_bool("psi(9)",psi_9);
+  j.write_bool("psi(8)",psi_8);
+
+  j.end_obj();
 }
 
 // IE: PDU session status
@@ -1056,6 +1326,31 @@ SRSASN_CODE pdu_session_status_t::unpack(asn1::cbit_ref& bref)
   return SRSASN_SUCCESS;
 }
 
+void        pdu_session_status_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+
+  j.write_bool("psi(7)",psi_7);
+  j.write_bool("psi(6)",psi_6);
+  j.write_bool("psi(5)",psi_5);
+  j.write_bool("psi(4)",psi_4);
+  j.write_bool("psi(3)",psi_3);
+  j.write_bool("psi(2)",psi_2);
+  j.write_bool("psi(1)",psi_1);
+  j.write_bool("psi(0)",psi_0);
+  j.write_bool("psi(15)",psi_15);
+  j.write_bool("psi(14)",psi_14);
+  j.write_bool("psi(13)",psi_13);
+  j.write_bool("psi(12)",psi_12);
+  j.write_bool("psi(11)",psi_11);
+  j.write_bool("psi(10)",psi_10);
+  j.write_bool("psi(9)",psi_9);
+  j.write_bool("psi(8)",psi_8);
+
+  j.end_obj();
+}
+
+
 // IE: MICO indication
 // Reference: 9.11.3.31
 SRSASN_CODE mico_indication_t::pack(asn1::bit_ref& bref)
@@ -1077,6 +1372,18 @@ SRSASN_CODE mico_indication_t::unpack(asn1::cbit_ref& bref)
   HANDLE_CODE(bref.unpack(aai, 1));
   return SRSASN_SUCCESS;
 }
+
+
+void        mico_indication_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+
+  j.write_bool("SPRTI", sprti);
+  j.write_bool("RAAI", aai);
+
+  j.end_obj();
+}
+
 
 // IE: UE status
 // Reference: 9.11.3.56
@@ -1118,6 +1425,17 @@ SRSASN_CODE ue_status_t::unpack(asn1::cbit_ref& bref)
   HANDLE_CODE(bref.unpack(s1_mode_reg, 1));
   return SRSASN_SUCCESS;
 }
+
+void        ue_status_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+
+  j.write_bool("N1 mode reg", n1_mode_reg);
+  j.write_bool("S1 mode reg", s1_mode_reg);
+
+  j.end_obj();
+}
+
 
 // IE: Allowed PDU session status
 // Reference: 9.11.3.13
@@ -1191,6 +1509,30 @@ SRSASN_CODE allowed_pdu_session_status_t::unpack(asn1::cbit_ref& bref)
   return SRSASN_SUCCESS;
 }
 
+void        allowed_pdu_session_status_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+
+  j.write_bool("psi(7)",psi_7);
+  j.write_bool("psi(6)",psi_6);
+  j.write_bool("psi(5)",psi_5);
+  j.write_bool("psi(4)",psi_4);
+  j.write_bool("psi(3)",psi_3);
+  j.write_bool("psi(2)",psi_2);
+  j.write_bool("psi(1)",psi_1);
+  j.write_bool("psi(0)",psi_0);
+  j.write_bool("psi(15)",psi_15);
+  j.write_bool("psi(14)",psi_14);
+  j.write_bool("psi(13)",psi_13);
+  j.write_bool("psi(12)",psi_12);
+  j.write_bool("psi(11)",psi_11);
+  j.write_bool("psi(10)",psi_10);
+  j.write_bool("psi(9)",psi_9);
+  j.write_bool("psi(8)",psi_8);
+
+  j.end_obj();
+}
+
 // IE: UE usage setting
 // Reference: 9.11.3.55
 SRSASN_CODE ue_usage_setting_t::pack(asn1::bit_ref& bref)
@@ -1241,6 +1583,15 @@ const char* ue_usage_setting_t::UE_usage_setting_type_::to_string() const
       return "Invalid Choice";
   }
 }
+
+void        ue_usage_setting_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_str("UE's usage setting", ue_usage_setting.to_string());
+  j.end_obj();
+}
+
+
 // IE: 5GS DRX parameters
 // Reference: 9.11.3.2A
 SRSASN_CODE drx_parameters_5gs_t::pack(asn1::bit_ref& bref)
@@ -1298,6 +1649,15 @@ const char* drx_parameters_5gs_t::drx_value_type_::to_string() const
       return "Invalid Choice";
   }
 }
+
+void        drx_parameters_5gs_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_str("DRX value", drx_value.to_string());
+  j.end_obj();
+}
+
+
 // IE: EPS NAS message container
 // Reference: 9.11.3.24
 SRSASN_CODE eps_nas_message_container_t::pack(asn1::bit_ref& bref)
@@ -1323,6 +1683,13 @@ SRSASN_CODE eps_nas_message_container_t::unpack(asn1::cbit_ref& bref)
   eps_nas_message_container.resize(length);
   HANDLE_CODE(bref.unpack_bytes(eps_nas_message_container.data(), length));
   return SRSASN_SUCCESS;
+}
+
+void        eps_nas_message_container_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_str("EPS NAS message container", octstring_to_string(eps_nas_message_container.data(), eps_nas_message_container.size()));
+  j.end_obj();
 }
 
 // IE: LADN indication
@@ -1369,6 +1736,15 @@ SRSASN_CODE ladn_indication_t::unpack(asn1::cbit_ref& bref)
   return SRSASN_SUCCESS;
 }
 
+void        ladn_indication_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+  for (auto& dnn : ladn_dnn_values) {
+    dnn.to_json(j);
+  }
+  j.end_obj();
+}
+
 // IE: Payload container type
 // Reference: 9.11.3.40
 SRSASN_CODE payload_container_type_t::pack(asn1::bit_ref& bref)
@@ -1410,6 +1786,14 @@ const char* payload_container_type_t::Payload_container_type_type_::to_string() 
       return "Invalid Choice";
   }
 }
+
+void        payload_container_type_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_str("Payload container type value", payload_container_type.to_string());
+  j.end_obj();
+}
+
 // IE: Payload container
 // Reference: 9.11.3.39
 SRSASN_CODE payload_container_t::pack(asn1::bit_ref& bref)
@@ -1431,6 +1815,7 @@ SRSASN_CODE payload_container_t::pack(asn1::bit_ref& bref)
   return SRSASN_SUCCESS;
 }
 
+
 // IE: Payload container
 // Reference: 9.11.3.39
 SRSASN_CODE payload_container_t::unpack(asn1::cbit_ref& bref)
@@ -1445,6 +1830,13 @@ SRSASN_CODE payload_container_t::unpack(asn1::cbit_ref& bref)
   payload_container_contents.resize(length);
   HANDLE_CODE(bref.unpack_bytes(payload_container_contents.data(), length));
   return SRSASN_SUCCESS;
+}
+
+void        payload_container_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_str("Payload container contents", octstring_to_string(payload_container_contents.data(), payload_container_contents.size()));
+  j.end_obj();
 }
 
 // IE: Network slicing indication
@@ -1467,6 +1859,14 @@ SRSASN_CODE network_slicing_indication_t::unpack(asn1::cbit_ref& bref)
   HANDLE_CODE(bref.unpack(nssci, 1));
   HANDLE_CODE(bref.unpack(dcni, 1));
   return SRSASN_SUCCESS;
+}
+
+void        network_slicing_indication_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_bool("nssci", nssci);
+  j.write_bool("dcni", dcni);
+  j.end_obj();
 }
 
 // IE: 5GS update type
@@ -1557,6 +1957,17 @@ const char* update_type_5gs_t::PNB_EPS_CIoT_type_::to_string() const
       return "Invalid Choice";
   }
 }
+
+void        update_type_5gs_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_str("EPS-PNB-CIoT", pnb_eps_c_io_t.to_string());
+  j.write_str("5GS-PNB-CIoT", pnb_5gs_c_io_t.to_string());
+  j.write_str("NG-RAN-RCU", ng_ran_rcu.to_string());
+  j.write_str("SMS requested", sms_requested.to_string());
+  j.end_obj();
+}
+
 // IE: Mobile station classmark 2
 // Reference: 9.11.3.31C
 SRSASN_CODE mobile_station_classmark_2_t::pack(asn1::bit_ref& bref)
@@ -1594,6 +2005,13 @@ SRSASN_CODE mobile_station_classmark_2_t::unpack(asn1::cbit_ref& bref)
   // TODO proper unpacking
   bref.advance_bits(length * 8);
   return SRSASN_SUCCESS;
+}
+
+void        mobile_station_classmark_2_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+  // TODO
+  j.end_obj();
 }
 
 // IE: Supported codec list
@@ -1634,6 +2052,13 @@ SRSASN_CODE supported_codec_list_t::unpack(asn1::cbit_ref& bref)
   return SRSASN_SUCCESS;
 }
 
+void        supported_codec_list_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+  //TODO
+  j.end_obj();
+}
+
 // IE: message container
 // Reference: 9.11.3.33
 SRSASN_CODE message_container_t::pack(asn1::bit_ref& bref)
@@ -1670,6 +2095,13 @@ SRSASN_CODE message_container_t::unpack(asn1::cbit_ref& bref)
   nas_message_container.resize(length);
   HANDLE_CODE(bref.unpack_bytes(nas_message_container.data(), length));
   return SRSASN_SUCCESS;
+}
+
+void        message_container_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_str("NAS message container contents", octstring_to_string(nas_message_container.data(), nas_message_container.size()));
+  j.end_obj();
 }
 
 // IE: EPS bearer context status
@@ -1738,6 +2170,31 @@ SRSASN_CODE eps_bearer_context_status_t::unpack(asn1::cbit_ref& bref)
   HANDLE_CODE(bref.unpack(ebi_8, 1));
   return SRSASN_SUCCESS;
 }
+
+void        eps_bearer_context_status_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+
+  j.write_bool("ebi(7)",ebi_7);
+  j.write_bool("ebi(6)",ebi_6);
+  j.write_bool("ebi(5)",ebi_5);
+  j.write_bool("ebi(4)",ebi_4);
+  j.write_bool("ebi(3)",ebi_3);
+  j.write_bool("ebi(2)",ebi_2);
+  j.write_bool("ebi(1)",ebi_1);
+  j.write_bool("ebi(0)",ebi_0);
+  j.write_bool("ebi(15)",ebi_15);
+  j.write_bool("ebi(14)",ebi_14);
+  j.write_bool("ebi(13)",ebi_13);
+  j.write_bool("ebi(12)",ebi_12);
+  j.write_bool("ebi(11)",ebi_11);
+  j.write_bool("ebi(10)",ebi_10);
+  j.write_bool("ebi(9)",ebi_9);
+  j.write_bool("ebi(8)",ebi_8);
+
+  j.end_obj();
+}
+
 
 // IE: Extended DRX parameters
 // Reference: 9.11.3.26A
@@ -1855,6 +2312,15 @@ const char* extended_drx_parameters_t::eDRX_value_type_::to_string() const
       return "Invalid Choice";
   }
 }
+
+void        extended_drx_parameters_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_str("Paging Time Window", paging__time__window.to_string());
+  j.write_str("eDRX value ", e_drx_value.to_string());
+  j.end_obj();
+}
+
 // IE: GPRS timer 3
 // Reference: 9.11.2.5
 SRSASN_CODE gprs_timer_3_t::pack(asn1::bit_ref& bref)
@@ -1915,6 +2381,15 @@ const char* gprs_timer_3_t::Unit_type_::to_string() const
       return "Invalid Choice";
   }
 }
+
+void        gprs_timer_3_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_str("Unit", unit.to_string());
+  j.write_int("Timer value", timer_value);
+  j.end_obj();
+}
+
 // IE: UE radio capability ID
 // Reference: 9.11.3.68
 SRSASN_CODE ue_radio_capability_id_t::pack(asn1::bit_ref& bref)
@@ -1940,6 +2415,13 @@ SRSASN_CODE ue_radio_capability_id_t::unpack(asn1::cbit_ref& bref)
   ue_radio_capability_id.resize(length);
   HANDLE_CODE(bref.unpack_bytes(ue_radio_capability_id.data(), length));
   return SRSASN_SUCCESS;
+}
+
+void        ue_radio_capability_id_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_str("UE radio capability ID", octstring_to_string(ue_radio_capability_id.data(), ue_radio_capability_id.size()));
+  j.end_obj();
 }
 
 // IE: Mapped NSSAI
@@ -1980,6 +2462,13 @@ SRSASN_CODE mapped_nssai_t::unpack(asn1::cbit_ref& bref)
   return SRSASN_SUCCESS;
 }
 
+void        mapped_nssai_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+  //TODO
+  j.end_obj();
+}
+
 // IE: Additional information requested
 // Reference: 9.11.3.12A
 SRSASN_CODE additional_information_requested_t::pack(asn1::bit_ref& bref)
@@ -2008,6 +2497,13 @@ SRSASN_CODE additional_information_requested_t::unpack(asn1::cbit_ref& bref)
   bref.advance_bits(7);
   HANDLE_CODE(bref.unpack(cipher_key, 1));
   return SRSASN_SUCCESS;
+}
+
+void        additional_information_requested_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_bool("Cipher Key", cipher_key);
+  j.end_obj();
 }
 
 // IE: WUS assistance information
@@ -2049,6 +2545,13 @@ SRSASN_CODE wus_assistance_information_t::unpack(asn1::cbit_ref& bref)
   return SRSASN_SUCCESS;
 }
 
+void        wus_assistance_information_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+  //TODO
+  j.end_obj();
+}
+
 // IE: N5GC indication
 // Reference: 9.11.3.72
 SRSASN_CODE n5gc_indication_t::pack(asn1::bit_ref& bref)
@@ -2067,6 +2570,13 @@ SRSASN_CODE n5gc_indication_t::unpack(asn1::cbit_ref& bref)
   bref.advance_bits(3);
   HANDLE_CODE(bref.unpack(n5gcreg, 1));
   return SRSASN_SUCCESS;
+}
+
+void        n5gc_indication_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_bool("N5GCREG", n5gcreg);
+  j.end_obj();
 }
 
 // IE: NB-N1 mode DRX parameters
@@ -2131,6 +2641,14 @@ const char* nb_n1_mode_drx_parameters_t::nb_n1_mode_drx_value_type_::to_string()
       return "Invalid Choice";
   }
 }
+
+void        nb_n1_mode_drx_parameters_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_str("NB-N1 mode DRX value", nb_n1_mode_drx_value.to_string());
+  j.end_obj();
+}
+
 // IE: 5GS registration result
 // Reference: 9.11.3.6
 SRSASN_CODE registration_result_5gs_t::pack(asn1::bit_ref& bref)
@@ -2225,6 +2743,18 @@ const char* registration_result_5gs_t::registration_result_type_::to_string() co
       return "Invalid Choice";
   }
 }
+
+void        registration_result_5gs_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_str("Emergency registered", emergency_registered.to_string());
+  j.write_str("NSSAA Performed", nssaa_to_be_performed.to_string());
+  j.write_str("SMS allowed", sms_allowed.to_string());
+  j.write_str("5Gs registration result value", registration_result.to_string());
+  j.end_obj();
+}
+
+
 // IE: PLMN list
 // Reference: 9.11.3.45
 SRSASN_CODE plmn_list_t::pack(asn1::bit_ref& bref)
@@ -2251,6 +2781,13 @@ SRSASN_CODE plmn_list_t::unpack(asn1::cbit_ref& bref)
   // TODO proper unpacking
   bref.advance_bits(length * 8);
   return SRSASN_SUCCESS;
+}
+
+void        plmn_list_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+  // TODO
+  j.end_obj();
 }
 
 // IE: 5GS tracking area identity list
@@ -2308,6 +2845,14 @@ const char* tracking_area_identity_list_5gs_t::type_of_list_type_::to_string() c
       return "Invalid Choice";
   }
 }
+
+void        tracking_area_identity_list_5gs_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+  // TODO
+  j.end_obj();
+}
+
 // IE: Rejected NSSAI
 // Reference: 9.11.3.46
 SRSASN_CODE rejected_nssai_t::pack(asn1::bit_ref& bref)
@@ -2334,6 +2879,14 @@ SRSASN_CODE rejected_nssai_t::unpack(asn1::cbit_ref& bref)
   // TODO proper unpacking
   bref.advance_bits(length * 8);
   return SRSASN_SUCCESS;
+}
+
+
+void        rejected_nssai_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+  // TODO
+  j.end_obj();
 }
 
 // IE: 5GS network feature support
@@ -2374,6 +2927,14 @@ SRSASN_CODE network_feature_support_5gs_t::unpack(asn1::cbit_ref& bref)
   // TODO proper unpacking
   bref.advance_bits(length * 8);
   return SRSASN_SUCCESS;
+}
+
+
+void        network_feature_support_5gs_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+  // TODO
+  j.end_obj();
 }
 
 // IE: PDU session reactivation result
@@ -2451,6 +3012,30 @@ SRSASN_CODE pdu_session_reactivation_result_t::unpack(asn1::cbit_ref& bref)
   return SRSASN_SUCCESS;
 }
 
+
+void        pdu_session_reactivation_result_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_bool("psi(7)",psi_7);
+  j.write_bool("psi(6)",psi_6);
+  j.write_bool("psi(5)",psi_5);
+  j.write_bool("psi(4)",psi_4);
+  j.write_bool("psi(3)",psi_3);
+  j.write_bool("psi(2)",psi_2);
+  j.write_bool("psi(1)",psi_1);
+  j.write_bool("psi(0)",psi_0);
+  j.write_bool("psi(15)",psi_15);
+  j.write_bool("psi(14)",psi_14);
+  j.write_bool("psi(13)",psi_13);
+  j.write_bool("psi(12)",psi_12);
+  j.write_bool("psi(11)",psi_11);
+  j.write_bool("psi(10)",psi_10);
+  j.write_bool("psi(9)",psi_9);
+  j.write_bool("psi(8)",psi_8);
+
+  j.end_obj();
+}
+
 // IE: PDU session reactivation result error cause
 // Reference: 9.11.3.43
 SRSASN_CODE pdu_session_reactivation_result_error_cause_t::pack(asn1::bit_ref& bref)
@@ -2492,6 +3077,14 @@ SRSASN_CODE pdu_session_reactivation_result_error_cause_t::unpack(asn1::cbit_ref
   return SRSASN_SUCCESS;
 }
 
+
+void        pdu_session_reactivation_result_error_cause_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+  // TODO
+  j.end_obj();
+}
+
 // IE: LADN information
 // Reference: 9.11.3.30
 SRSASN_CODE ladn_information_t::pack(asn1::bit_ref& bref)
@@ -2531,6 +3124,13 @@ SRSASN_CODE ladn_information_t::unpack(asn1::cbit_ref& bref)
   return SRSASN_SUCCESS;
 }
 
+
+void        ladn_information_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.end_obj();
+}
+
 // IE: Service area list
 // Reference: 9.11.3.49
 SRSASN_CODE service_area_list_t::pack(asn1::bit_ref& bref)
@@ -2558,6 +3158,14 @@ SRSASN_CODE service_area_list_t::unpack(asn1::cbit_ref& bref)
   bref.advance_bits(length * 8);
   return SRSASN_SUCCESS;
 }
+
+void        service_area_list_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+  // TODO
+  j.end_obj();
+}
+
 
 // IE: GPRS timer 2
 // Reference: 9.11.2.4
@@ -2593,6 +3201,14 @@ SRSASN_CODE gprs_timer_2_t::unpack(asn1::cbit_ref& bref)
   HANDLE_CODE(bref.unpack(timer_value, 8));
   return SRSASN_SUCCESS;
 }
+
+void        gprs_timer_2_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_int("GPRS Timer 2 value", timer_value);
+  j.end_obj();
+}
+
 
 // IE: Emergency number list
 // Reference: 9.11.3.23
@@ -2633,6 +3249,14 @@ SRSASN_CODE emergency_number_list_t::unpack(asn1::cbit_ref& bref)
   bref.advance_bits(length * 8);
   return SRSASN_SUCCESS;
 }
+
+void        emergency_number_list_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+  // TODO
+  j.end_obj();
+}
+
 
 // IE: Extended emergency number list
 // Reference: 9.11.3.26
@@ -2675,6 +3299,14 @@ SRSASN_CODE extended_emergency_number_list_t::unpack(asn1::cbit_ref& bref)
   return SRSASN_SUCCESS;
 }
 
+void        extended_emergency_number_list_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+  // TODO
+  j.end_obj();
+}
+
+
 // IE: SOR transparent container
 // Reference: 9.11.3.51
 SRSASN_CODE sor_transparent_container_t::pack(asn1::bit_ref& bref)
@@ -2714,6 +3346,14 @@ SRSASN_CODE sor_transparent_container_t::unpack(asn1::cbit_ref& bref)
   return SRSASN_SUCCESS;
 }
 
+void        sor_transparent_container_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+  //TODO
+  j.end_obj();
+}
+
+
 // IE: EAP message
 // Reference: 9.11.2.2
 SRSASN_CODE eap_message_t::pack(asn1::bit_ref& bref)
@@ -2750,6 +3390,14 @@ SRSASN_CODE eap_message_t::unpack(asn1::cbit_ref& bref)
   return SRSASN_SUCCESS;
 }
 
+void        eap_message_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_str("EAP message", octstring_to_string(eap_message.data(), eap_message.size()));
+  j.end_obj();
+}
+
+
 // IE: NSSAI inclusion mode
 // Reference: 9.11.3.37A
 SRSASN_CODE nssai_inclusion_mode_t::pack(asn1::bit_ref& bref)
@@ -2785,6 +3433,15 @@ const char* nssai_inclusion_mode_t::NSSAI_inclusion_mode_type_::to_string() cons
       return "Invalid Choice";
   }
 }
+
+void        nssai_inclusion_mode_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_str("NSSAI inclusion mode", nssai_inclusion_mode.to_string());
+  j.end_obj();
+}
+
+
 // IE: Operator-defined access category definitions
 // Reference: 9.11.3.38
 SRSASN_CODE operator_defined_access_category_definitions_t::pack(asn1::bit_ref& bref)
@@ -2813,6 +3470,14 @@ SRSASN_CODE operator_defined_access_category_definitions_t::unpack(asn1::cbit_re
   return SRSASN_SUCCESS;
 }
 
+void        operator_defined_access_category_definitions_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+  // TODO
+  j.end_obj();
+}
+
+
 // IE: Non-3GPP NW provided policies
 // Reference: 9.11.3.36A
 SRSASN_CODE non_3_gpp_nw_provided_policies_t::pack(asn1::bit_ref& bref)
@@ -2831,6 +3496,13 @@ SRSASN_CODE non_3_gpp_nw_provided_policies_t::unpack(asn1::cbit_ref& bref)
   bref.advance_bits(3);
   HANDLE_CODE(bref.unpack(n3_en, 1));
   return SRSASN_SUCCESS;
+}
+
+void        non_3_gpp_nw_provided_policies_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_bool("N3EN indicator", n3_en);
+  j.end_obj();
 }
 
 // IE: UE radio capability ID deletion indication
@@ -2864,6 +3536,14 @@ const char* ue_radio_capability_id_deletion_indication_t::Deletion_request_type_
       return "Invalid Choice";
   }
 }
+
+void        ue_radio_capability_id_deletion_indication_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_str("Deletion request", deletion_request.to_string());
+  j.end_obj();
+}
+
 // IE: Ciphering key data
 // Reference: 9.11.3.18C
 SRSASN_CODE ciphering_key_data_t::pack(asn1::bit_ref& bref)
@@ -2904,6 +3584,13 @@ SRSASN_CODE ciphering_key_data_t::unpack(asn1::cbit_ref& bref)
   return SRSASN_SUCCESS;
 }
 
+void        ciphering_key_data_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+  // TODO
+  j.end_obj();
+}
+
 // IE: CAG information list
 // Reference: 9.11.3.18A
 SRSASN_CODE cag_information_list_t::pack(asn1::bit_ref& bref)
@@ -2930,6 +3617,13 @@ SRSASN_CODE cag_information_list_t::unpack(asn1::cbit_ref& bref)
   // TODO proper unpacking
   bref.advance_bits(length * 8);
   return SRSASN_SUCCESS;
+}
+
+void        cag_information_list_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+  // TODO
+  j.end_obj();
 }
 
 // IE: Truncated 5G-S-TMSI configuration
@@ -2970,6 +3664,14 @@ SRSASN_CODE truncated_5g_s_tmsi_configuration_t::unpack(asn1::cbit_ref& bref)
   HANDLE_CODE(bref.unpack(truncated_amf__set_id_value, 4));
   HANDLE_CODE(bref.unpack(truncated_amf__pointer_value, 4));
   return SRSASN_SUCCESS;
+}
+
+void        truncated_5g_s_tmsi_configuration_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_int("Truncated AMF Set ID value", truncated_amf__set_id_value);
+  j.write_int("Truncated AMF Pointer value ", truncated_amf__pointer_value);
+  j.end_obj();
 }
 
 // IE: 5GMM cause
@@ -3079,6 +3781,14 @@ const char* cause_5gmm_t::cause_5gmm_type_::to_string() const
       return "Invalid Choice";
   }
 }
+
+void        cause_5gmm_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_str("", cause_5gmm.to_string());
+  j.end_obj();
+}
+
 // IE: De-registration type
 // Reference: 9.11.3.20
 SRSASN_CODE de_registration_type_t::pack(asn1::bit_ref& bref)
@@ -3443,6 +4153,13 @@ SRSASN_CODE abba_t::unpack(asn1::cbit_ref& bref)
   return SRSASN_SUCCESS;
 }
 
+void        abba_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_str("ABBA content", octstring_to_string(abba_contents.data(), abba_contents.size()));
+  j.end_obj();
+}
+
 // IE: Authentication parameter RAND
 // Reference: 9.11.3.16
 SRSASN_CODE authentication_parameter_rand_t::pack(asn1::bit_ref& bref)
@@ -3457,6 +4174,13 @@ SRSASN_CODE authentication_parameter_rand_t::unpack(asn1::cbit_ref& bref)
 {
   HANDLE_CODE(bref.unpack_bytes(rand.data(), 16));
   return SRSASN_SUCCESS;
+}
+
+void        authentication_parameter_rand_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_str("RAND value", octstring_to_string(rand.data(), 16));
+  j.end_obj();
 }
 
 // IE: Authentication parameter AUTN
@@ -3497,6 +4221,13 @@ SRSASN_CODE authentication_parameter_autn_t::unpack(asn1::cbit_ref& bref)
   return SRSASN_SUCCESS;
 }
 
+void        authentication_parameter_autn_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_str("AUTN", octstring_to_string(autn.data(), autn.size()));
+  j.end_obj();
+}
+
 // IE: Authentication response parameter
 // Reference: 9.11.3.17
 SRSASN_CODE authentication_response_parameter_t::pack(asn1::bit_ref& bref)
@@ -3535,6 +4266,13 @@ SRSASN_CODE authentication_response_parameter_t::unpack(asn1::cbit_ref& bref)
   return SRSASN_SUCCESS;
 }
 
+void        authentication_response_parameter_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_str("RES", octstring_to_string(res.data(), res.size()));
+  j.end_obj();
+}
+
 // IE: Authentication failure parameter
 // Reference: 9.11.3.14
 SRSASN_CODE authentication_failure_parameter_t::pack(asn1::bit_ref& bref)
@@ -3571,6 +4309,14 @@ SRSASN_CODE authentication_failure_parameter_t::unpack(asn1::cbit_ref& bref)
   auth_failure.resize(length);
   HANDLE_CODE(bref.unpack_bytes(auth_failure.data(), length));
   return SRSASN_SUCCESS;
+}
+
+void        authentication_failure_parameter_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_str("Authentication Failure parameter", octstring_to_string(auth_failure.data(), auth_failure.size()));
+  j.end_obj();
+
 }
 
 // IE: 5GS identity type
@@ -4138,6 +4884,29 @@ const char* s_nssai_t::SST_type_::to_string() const
       return "Invalid Choice";
   }
 }
+
+void        s_nssai_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+  if (type == s_nssai_t::SST_type_::options::sst) {
+    j.write_int("SST", sst);
+  } else if (type == s_nssai_t::SST_type_::options::sst_and_mapped_hplmn_sst) {
+    j.write_int("SST", sst);
+    j.write_int("HPLMN SST", mapped_hplmn_sst);
+  } else if (type == s_nssai_t::SST_type_::options::sst_and_sd) {
+    j.write_int("SST", sst);
+    j.write_int("SD", sd);
+  } else if (type == s_nssai_t::SST_type_::options::sst_sd_mapped_hplmn_sst_and_mapped_hplmn_sd) {
+    j.write_int("SST", sst);
+    j.write_int("SD", sd);
+    j.write_int("HPLMN SST", mapped_hplmn_sst);
+    j.write_int("HPLMN SD", mapped_hplmn_sd);
+  } else {
+    asn1::log_error("Not such a length type for s_nssai");
+  }
+  j.end_obj();
+}
+
 // IE: DNN
 // Reference: 9.11.2.1B
 SRSASN_CODE dnn_t::pack(asn1::bit_ref& bref)
@@ -4171,6 +4940,13 @@ SRSASN_CODE dnn_t::unpack(asn1::cbit_ref& bref)
   dnn_value.resize(length);
   HANDLE_CODE(bref.unpack_bytes(dnn_value.data(), length));
   return SRSASN_SUCCESS;
+}
+
+void        dnn_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_str("DNN value", octstring_to_string(dnn_value.data(), dnn_value.size()));
+  j.end_obj();
 }
 
 // IE: Additional information

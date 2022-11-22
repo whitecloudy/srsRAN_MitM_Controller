@@ -151,7 +151,7 @@ public:
 public:
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
-
+  void        to_json(json_writer& j);
 }; // registration_request_t
 
 /*
@@ -286,7 +286,7 @@ public:
 public:
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
-
+  void        to_json(json_writer& j);
 }; // registration_accept_t
 
 /*
@@ -309,7 +309,7 @@ public:
 public:
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
-
+  void        to_json(json_writer& j);
 }; // registration_complete_t
 
 /*
@@ -345,7 +345,7 @@ public:
 public:
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
-
+  void        to_json(json_writer& j) const;
 }; // registration_reject_t
 
 /*
@@ -684,6 +684,7 @@ public:
 public:
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
+  void        to_json(json_writer& j) const;
 
 }; // authentication_request_t
 
@@ -710,6 +711,8 @@ public:
 public:
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
+  void        to_json(json_writer& j) const;
+
 
 }; // authentication_response_t
 
@@ -733,6 +736,7 @@ public:
 public:
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
+  void        to_json(json_writer& j) const;
 
 }; // authentication_reject_t
 
@@ -757,7 +761,7 @@ public:
 public:
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
-
+  void        to_json(json_writer& j) const;
 }; // authentication_failure_t
 
 /*
@@ -783,6 +787,7 @@ public:
 public:
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
+  void        to_json(json_writer& j) const;
 
 }; // authentication_result_t
 
@@ -1814,6 +1819,7 @@ struct nas_5gs_hdr {
   SRSASN_CODE pack_outer(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
   SRSASN_CODE unpack_outer(asn1::cbit_ref& bref);
+  void        to_json(json_writer& j) const;
 };
 
 class nas_5gs_msg
@@ -1827,6 +1833,7 @@ public:
   SRSASN_CODE unpack(const std::vector<uint8_t>& buf);
   SRSASN_CODE unpack_outer_hdr(const unique_byte_buffer_t& buf);
   SRSASN_CODE unpack_outer_hdr(const std::vector<uint8_t>& buf);
+  void        to_json(json_writer& j);
 
   void set(msg_types::options e = msg_types::nulltype) { hdr.message_type = e; };
   // Getters
