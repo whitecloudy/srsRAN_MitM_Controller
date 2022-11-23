@@ -8,6 +8,10 @@ endif(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
 cmake_minimum_required(VERSION 3.1.0)
 project(mitm VERSION 0.1.0)
 
+
+########################################################################
+# External Library config
+########################################################################
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/modules")
 
 # Crypto
@@ -35,53 +39,20 @@ else(POLARSSL_FOUND)
     endif (MBEDTLS_FOUND)
 endif(POLARSSL_FOUND)
 
-#include(CTest)
-#enable_testing()
-
-#list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/modules")
-#include(SRSRANVersion)
-#include(SRSRANPackage)
-
 ########################################################################
-# Install Dirs
+# Execution file setting
 ########################################################################
-#if (NOT CMAKE_INSTALL_LIBDIR)
-#    include(GNUInstallDirs)
-#endif (NOT CMAKE_INSTALL_LIBDIR)
 
-# Fall back to just "lib" if the item provided by GNUInstallDirs doesn't exist
-#if (NOT EXISTS "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
-#    message(STATUS "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR} does not exist. Defaulting install location to ${CMAKE_INSTALL_PREFIX}/lib.")
-#    set(CMAKE_INSTALL_LIBDIR lib)
-#endif()
-
-#set(RUNTIME_DIR bin)
-#set(LIBRARY_DIR ${CMAKE_INSTALL_LIBDIR})
-#set(INCLUDE_DIR include)
+set (EXEC_LIB_LIST  rrc_nr_asn1
+                    asn1_utils
+                    srsran_common
+                    controller_src)
 
 add_subdirectory(lib)
-
-#set(THREADS_PREFER_PTHREAD_LAG ON)
-#find_package(Threads REQUIRED)
+add_subdirectory(src)
 
 add_executable(mitm controller.cc)
-target_link_libraries(mitm pthread)
+target_link_libraries(mitm pthread ${EXEC_LIB_LIST})
 
-#set(CPACK_PROJECT_NAME ${PROJECT_NAME})
-#set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
-#include(CPack)
 
-########################################################################
-# Add headers to cmake project (useful for IDEs)
-########################################################################
-#set(HEADERS_ALL "")
-#file(GLOB headers *)
-#foreach(_header ${headers})
-#    message(${_header})
-#    if(IS_DIRECTORY ${_header})
-#        file(GLOB_RECURSE tmp "${_header}/*.h")
-#        list(APPEND HEADERS_ALL ${tmp})
-#    endif(IS_DIRECTORY ${_header})
-#endforeach()
-#add_custom_target(add_srsran_headers SOURCES ${HEADERS_ALL})
 
