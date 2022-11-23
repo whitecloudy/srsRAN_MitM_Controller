@@ -1794,6 +1794,7 @@ public:
 
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
+  void        to_json(json_writer& j) const;
 
 }; // identity_type_5gs_t
 
@@ -1840,6 +1841,7 @@ public:
 
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
+  void        to_json(json_writer& j) const;
 
 }; // security_algorithms_t
 
@@ -1862,6 +1864,7 @@ public:
 
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
+  void        to_json(json_writer& j) const;
 
 }; // imeisv_request_t
 
@@ -1908,6 +1911,7 @@ public:
 
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
+  void        to_json(json_writer& j) const;
 
 }; // eps_nas_security_algorithms_t
 
@@ -1921,6 +1925,7 @@ public:
 
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
+  void        to_json(json_writer& j) const;
 
 }; // additional_5g_security_information_t
 
@@ -1970,7 +1975,8 @@ public:
 
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
-
+  void        to_json(json_writer& j) const;
+  
 }; // s1_ue_security_capability_t
 
 // IE: Access type

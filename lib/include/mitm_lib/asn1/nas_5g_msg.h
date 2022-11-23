@@ -808,6 +808,7 @@ public:
 public:
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
+  void        to_json(json_writer& j) const;
 
 }; // identity_request_t
 
@@ -827,6 +828,7 @@ public:
 public:
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
+  void        to_json(json_writer& j);
 
 }; // identity_response_t
 
@@ -869,6 +871,7 @@ public:
 public:
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
+  void        to_json(json_writer& j);
 
 }; // security_mode_command_t
 
@@ -898,6 +901,7 @@ public:
 public:
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
+  void        to_json(json_writer& j);
 
 }; // security_mode_complete_t
 
@@ -917,6 +921,7 @@ public:
 public:
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
+  void        to_json(json_writer& j);
 
 }; // security_mode_reject_t
 

@@ -2214,6 +2214,17 @@ SRSASN_CODE identity_request_t::unpack(asn1::cbit_ref& bref)
   return SRSASN_SUCCESS;
 }
 
+void        identity_request_t::to_json(json_writer& j) const
+{
+  j.write_fieldname("Identity request");
+  j.start_obj();
+
+  j.write_fieldname("Identity type");
+  identity_type.to_json(j);
+
+  j.end_obj();
+}
+
 SRSASN_CODE identity_response_t::pack(asn1::bit_ref& bref)
 {
   // Mandatory fields
@@ -2249,6 +2260,17 @@ SRSASN_CODE identity_response_t::unpack(asn1::cbit_ref& bref)
   }
 
   return SRSASN_SUCCESS;
+}
+
+void        identity_response_t::to_json(json_writer& j)
+{
+  j.write_fieldname("Identity response");
+  j.start_obj();
+
+  j.write_fieldname("Mobile identity");
+  mobile_identity.to_json(j);
+
+  j.end_obj();
 }
 
 SRSASN_CODE security_mode_command_t::pack(asn1::bit_ref& bref)
@@ -2342,6 +2364,48 @@ SRSASN_CODE security_mode_command_t::unpack(asn1::cbit_ref& bref)
   return SRSASN_SUCCESS;
 }
 
+void        security_mode_command_t::to_json(json_writer& j)
+{
+  j.write_fieldname("Security mode command");
+  j.start_obj();
+
+  // Mandatory fields
+  j.write_fieldname("Selected NAS security algorithms");
+  selected_nas_security_algorithms.to_json(j);
+  j.write_fieldname("Selected NAS security algorithms");
+  ng_ksi.to_json(j);
+  j.write_fieldname("Replayed UE security capabilities");
+  replayed_ue_security_capabilities.to_json(j);
+
+  // Optional fields
+  if (imeisv_request_present == true) {
+    j.write_fieldname("IMEISV request");
+    imeisv_request.to_json(j);
+  }
+  if (selected_eps_nas_security_algorithms_present == true) {
+    j.write_fieldname("Selected EPS NAS security algorithms");
+    selected_eps_nas_security_algorithms.to_json(j);
+  }
+  if (additional_5g_security_information_present == true) {
+    j.write_fieldname("Additional 5G security information");
+    additional_5g_security_information.to_json(j);
+  }
+  if (eap_message_present == true) {
+    j.write_fieldname("EAP message");
+    eap_message.to_json(j);
+  }
+  if (abba_present == true) {
+    j.write_fieldname("ABBA");
+    abba.to_json(j);
+  }
+  if (replayed_s1_ue_security_capabilities_present == true) {
+    j.write_fieldname("Replayed S1 UE security capabilities");
+    replayed_s1_ue_security_capabilities.to_json(j);
+  }
+
+  j.end_obj();
+}
+
 SRSASN_CODE security_mode_complete_t::pack(asn1::bit_ref& bref)
 {
   // Mandatory fields
@@ -2401,6 +2465,29 @@ SRSASN_CODE security_mode_complete_t::unpack(asn1::cbit_ref& bref)
   return SRSASN_SUCCESS;
 }
 
+void        security_mode_complete_t::to_json(json_writer& j)
+{
+  j.write_fieldname("Security mode complete");
+  j.start_obj();
+  // Mandatory fields
+
+  // Optional fields
+  if (imeisv_present == true) {
+    j.write_fieldname("IMEISV");
+    imeisv.to_json(j);
+  }
+  if (nas_message_container_present == true) {
+    j.write_fieldname("NAS message container");  
+    nas_message_container.to_json(j);
+  }
+  if (non_imeisv_pei_present == true) {
+    j.write_fieldname("non-IMEISV PEI ");
+    non_imeisv_pei.to_json(j);
+  }
+
+  j.end_obj();
+}
+
 SRSASN_CODE security_mode_reject_t::pack(asn1::bit_ref& bref)
 {
   // Mandatory fields
@@ -2437,6 +2524,18 @@ SRSASN_CODE security_mode_reject_t::unpack(asn1::cbit_ref& bref)
 
   return SRSASN_SUCCESS;
 }
+
+void        security_mode_reject_t::to_json(json_writer& j)
+{
+  j.write_fieldname("Security mode reject");
+  j.start_obj();
+  // Mandatory fields
+  j.write_fieldname("5GMM cause");
+  cause_5gmm.to_json(j);
+
+  j.end_obj();
+}
+
 
 SRSASN_CODE status_5gmm_t::pack(asn1::bit_ref& bref)
 {

@@ -4360,6 +4360,15 @@ const char* identity_type_5gs_t::identity_types_::to_string() const
       return "Invalid Choice";
   }
 }
+
+
+void        identity_type_5gs_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_str("Type of identity", type_of_identity.to_string());
+  j.end_obj();
+}
+
 // IE: security algorithms
 // Reference: 9.11.3.34
 SRSASN_CODE security_algorithms_t::pack(asn1::bit_ref& bref)
@@ -4424,6 +4433,16 @@ const char* security_algorithms_t::ciphering_algorithm_type_::to_string() const
       return "Invalid Choice";
   }
 }
+
+
+void        security_algorithms_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_str("Type of ciphering algorithm", ciphering_algorithm.to_string());
+  j.write_str("Type of integrity algorithm", integrity_protection_algorithm.to_string());
+  j.end_obj();
+}
+
 // IE: IMEISV request
 // Reference: 9.11.3.28
 SRSASN_CODE imeisv_request_t::pack(asn1::bit_ref& bref)
@@ -4455,6 +4474,14 @@ const char* imeisv_request_t::imeisv_request_type_::to_string() const
       return "Invalid Choice";
   }
 }
+
+void        imeisv_request_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_str("IMEISV request value", imeisv_request.to_string());
+  j.end_obj();
+}
+
 // IE: EPS NAS security algorithms
 // Reference: 9.11.3.25
 SRSASN_CODE eps_nas_security_algorithms_t::pack(asn1::bit_ref& bref)
@@ -4528,6 +4555,15 @@ const char* eps_nas_security_algorithms_t::ciphering_algorithm_type_::to_string(
       return "Invalid Choice";
   }
 }
+
+void        eps_nas_security_algorithms_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_str("Type of ciphering algorithm", ciphering_algorithm.to_string());
+  j.write_str("Type of integrity algorithm", integrity_protection_algorithm.to_string());
+  j.end_obj();
+}
+
 // IE: Additional 5G security information
 // Reference: 9.11.3.12
 SRSASN_CODE additional_5g_security_information_t::pack(asn1::bit_ref& bref)
@@ -4571,6 +4607,15 @@ SRSASN_CODE additional_5g_security_information_t::unpack(asn1::cbit_ref& bref)
   HANDLE_CODE(bref.unpack(hdp, 1));
   return SRSASN_SUCCESS;
 }
+
+void        additional_5g_security_information_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_bool("RINMR", rinmr);
+  j.write_bool("HDP", hdp);
+  j.end_obj();
+}
+
 
 // IE: S1 UE security capability
 // Reference: 9.11.3.48A
@@ -4706,6 +4751,55 @@ SRSASN_CODE s1_ue_security_capability_t::unpack(asn1::cbit_ref& bref)
   HANDLE_CODE(bref.unpack(gea6, 1));
   HANDLE_CODE(bref.unpack(gea7, 1));
   return SRSASN_SUCCESS;
+}
+
+void        s1_ue_security_capability_t::to_json(json_writer& j) const
+{
+  j.start_obj();
+  j.write_bool("EEA0",eea0);
+  j.write_bool("128-EEA1",eea1_128);
+  j.write_bool("128-EEA2",eea2_128);
+  j.write_bool("128-EEA3",eea3_128);
+  j.write_bool("EEA4",eea4);
+  j.write_bool("EEA5",eea5);
+  j.write_bool("EEA6",eea6);
+  j.write_bool("EEA7",eea7);
+  j.write_bool("EIA0",eia0);
+  j.write_bool("128-EIA1",eia1_128);
+  j.write_bool("128-EIA2",eia2_128);
+  j.write_bool("128-EIA3",eia3_128);
+  j.write_bool("EIA4",eia4);
+  j.write_bool("EIA5",eia5);
+  j.write_bool("EIA6",eia6);
+  j.write_bool("EIA7",eia7);
+  j.write_bool("UEA0",uea0);
+  j.write_bool("UEA1",uea1);
+  j.write_bool("UEA2",uea2);
+  j.write_bool("UEA3",uea3);
+  j.write_bool("UEA4",uea4);
+  j.write_bool("UEA5",uea5);
+  j.write_bool("UEA6",uea6);
+  j.write_bool("UEA7",uea7);
+
+  j.write_bool("UIA1",uia1);
+  j.write_bool("UIA2",uia2);
+  j.write_bool("UIA3",uia3);
+  j.write_bool("UIA4",uia4);
+  j.write_bool("UIA5",uia5);
+  j.write_bool("UIA6",uia6);
+  j.write_bool("UIA7",uia7);
+
+  // 1 Spare bits
+
+  j.write_bool("GEA1",gea1);
+  j.write_bool("GEA2",gea2);
+  j.write_bool("GEA3",gea3);
+  j.write_bool("GEA4",gea4);
+  j.write_bool("GEA5",gea5);
+  j.write_bool("GEA6",gea6);
+  j.write_bool("GEA7",gea7);
+
+  j.end_obj();
 }
 
 // IE: Access type
