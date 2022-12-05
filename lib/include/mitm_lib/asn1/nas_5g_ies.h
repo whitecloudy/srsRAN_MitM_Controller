@@ -166,6 +166,8 @@ public:
 
     SRSASN_CODE pack(asn1::bit_ref& bref, asn1::bit_ref& bref_tmp);
     SRSASN_CODE unpack(asn1::cbit_ref& bref, uint8_t tmp, uint32_t length);
+    void        to_json(json_writer& j);
+
   }; // suci
   class guti_5g_s
   {
@@ -179,6 +181,7 @@ public:
 
     SRSASN_CODE pack(asn1::bit_ref& bref, asn1::bit_ref& bref_tmp);
     SRSASN_CODE unpack(asn1::cbit_ref& bref, uint8_t tmp, uint32_t length);
+    void        to_json(json_writer& j);
 
   }; // guti_5g
   class imei_s
@@ -189,6 +192,7 @@ public:
 
     SRSASN_CODE pack(asn1::bit_ref& bref, asn1::bit_ref& bref_tmp);
     SRSASN_CODE unpack(asn1::cbit_ref& bref, uint8_t tmp, uint32_t length);
+    void        to_json(json_writer& j);
 
   }; // imei
   class s_tmsi_5g_s
@@ -200,6 +204,7 @@ public:
 
     SRSASN_CODE pack(asn1::bit_ref& bref, asn1::bit_ref& bref_tmp);
     SRSASN_CODE unpack(asn1::cbit_ref& bref, uint8_t tmp, uint32_t length);
+    void        to_json(json_writer& j);
 
   }; // s_tmsi_5g
   class imeisv_s
@@ -210,6 +215,7 @@ public:
 
     SRSASN_CODE pack(asn1::bit_ref& bref, asn1::bit_ref& bref_tmp);
     SRSASN_CODE unpack(asn1::cbit_ref& bref, uint8_t tmp, uint32_t length);
+    void        to_json(json_writer& j);
 
   }; // imeisv
   class mac_address_s
@@ -219,6 +225,7 @@ public:
 
     SRSASN_CODE pack(asn1::bit_ref& bref, asn1::bit_ref& bref_tmp);
     SRSASN_CODE unpack(asn1::cbit_ref& bref, uint8_t tmp, uint32_t length);
+    void        to_json(json_writer& j);
 
   }; // mac_address
   class eui_64_s
@@ -228,6 +235,7 @@ public:
 
     SRSASN_CODE pack(asn1::bit_ref& bref, asn1::bit_ref& bref_tmp);
     SRSASN_CODE unpack(asn1::cbit_ref& bref, uint8_t tmp, uint32_t length);
+    void        to_json(json_writer& j);
 
   }; // eui_64
 

@@ -37,8 +37,10 @@ int fake_gNB_server_sock;
 
 int backend_sock;
 
-int msg_count = 6;
-std::string packet2send = "[";
+int msg_count = 10;
+std::string packet2send;
+
+asn1::json_writer * json_buffer = new asn1::json_writer;
 
 void* worker(void *arg) {
   static std::mutex m;
@@ -70,47 +72,54 @@ void* worker(void *arg) {
   while(1) {
     uint8_t buf[65535];
     socklen_t sn=sizeof(*fake_src_addr);
-    asn1::json_writer * packet_json_p = NULL;
+
+    int result;
+
     int n=recvfrom(*fake_src_sock,buf,sizeof(buf),0,(struct sockaddr *)fake_src_addr,&sn);
     //int n=recv(*fake_src_sock,buf,sizeof(buf),0);
+    m.lock();
     if(dir_v == FROM_FAKE_UE){  //Target gNB's packet is arrive here
-      packet_json_p = gNB::decode_packet(buf, n);
+      result = gNB::decode_packet(buf, n, *json_buffer);
     }else if(dir_v ==FROM_FAKE_gNB){  //Target UE's packet is arrive here
-      packet_json_p = UE::decode_packet(buf, n);
+      result = UE::decode_packet(buf, n, *json_buffer);
     }else{
       std::cerr << "Error: Undefined dir_v!"<< std::endl;
     }
 
-    //std::cout << packet_json_p->to_string() << std::endl;
-    m.lock();
-    if(msg_count > 0)
-    {
-      std::cout << msg_count << std::endl;
-      if(msg_count != 6)
-        packet2send += ',';
+    // //std::cout << packet_json_p->to_string() << std::endl;
+    // m.lock();
+    // if(msg_count > 0)
+    // {
+    //   std::cout << msg_count << std::endl;
+    //   // if(msg_count != 6)
+    // //     packet2send += ',';
       
-      std::string str = packet_json_p->to_string();
+    //   std::string str = packet_json_p->to_string();
+    //   std::cout << str <<std::endl;
 
-      packet2send += str.substr(1, str.length()-2);
+    //   packet2send += str;
 
+    //   msg_count -= 1;
 
-      msg_count -= 1;
-
-      if(msg_count == 0)
-      {
-        msg_count -= 1;
-        packet2send += ']';
-        //std::cout << packet2send << std::endl;
-        //std::cout << "hello?" << std::endl;
-        std::cout << packet2send << std::endl;
+    //   if(msg_count == 0)
+    //   {
+    msg_count -= 1;
+    //     // packet2send += ']';
+    //     // //std::cout << packet2send << std::endl;
+    //     // //std::cout << "hello?" << std::endl;
         
-        sendto(backend_sock, packet2send.c_str(), packet2send.length() ,0,(struct sockaddr *)&backend_addr,sizeof(backend_addr));
-      }
+    //     // sendto(backend_sock, packet2send.c_str(), packet2send.length() ,0,(struct sockaddr *)&backend_addr,sizeof(backend_addr));
+    //   }
+    // }  
+    if(msg_count == 0)
+    {
+      json_buffer->end_array();
+      std::string str = json_buffer->to_string();
+      std::cout << str << std::endl;
     }
+
     m.unlock();
     
-    delete packet_json_p;
-
     if(n>0 && fake_dst_addr->sin_port>0) {
       sendto(*fake_dst_sock,buf,n,0,(struct sockaddr *)fake_dst_addr,sizeof(*fake_dst_addr));
 
@@ -162,6 +171,7 @@ int main(int argc, char *argv[]) {
   pthread_t UE2gNB_proc, gNB2UE_proc;
   enum RELAY_DIR argv1 = FROM_FAKE_UE;
   enum RELAY_DIR argv2 = FROM_FAKE_gNB;
+  json_buffer->start_array();
   pthread_create(&UE2gNB_proc, NULL, worker, (void*)(&argv1));
   pthread_create(&gNB2UE_proc, NULL, worker, (void*)(&argv2));
 

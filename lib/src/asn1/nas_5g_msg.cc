@@ -2528,6 +2528,7 @@ SRSASN_CODE security_mode_reject_t::unpack(asn1::cbit_ref& bref)
 void        security_mode_reject_t::to_json(json_writer& j)
 {
   j.write_fieldname("Security mode reject");
+
   j.start_obj();
   // Mandatory fields
   j.write_fieldname("5GMM cause");
@@ -4184,7 +4185,6 @@ SRSASN_CODE nas_5gs_hdr::pack(asn1::bit_ref& bref)
 
 void nas_5gs_hdr::to_json(json_writer & j) const
 {
-  j.start_obj();
   switch(extended_protocol_discriminator)
   {
     case extended_protocol_discriminator_5gmm:
@@ -4225,7 +4225,6 @@ void nas_5gs_hdr::to_json(json_writer & j) const
       log_invalid_choice_id(extended_protocol_discriminator, "nas_5gs_hdr");
   }
 
-  j.end_obj();
 }
 
 SRSASN_CODE nas_5gs_msg::pack(unique_byte_buffer_t& buf)
@@ -4494,102 +4493,78 @@ SRSASN_CODE nas_5gs_msg::pack(asn1::bit_ref& msg_bref)
 void nas_5gs_msg::to_json(json_writer& j)
 {
   j.start_array();
-  j.write_fieldname("5GS mobility management message");
+  j.start_obj();
+  j.write_fieldname("5GS mobility management");
   j.start_obj();
   hdr.to_json(j);
 
-  if(hdr.security_header_type == nas_5gs_hdr::plain_5gs_nas_message)
+  if(hdr.security_header_type != nas_5gs_hdr::integrity_protected_and_ciphered and hdr.security_header_type != nas_5gs_hdr::integrity_protected_and_ciphered_with_new_5G_nas_context)
   {
     switch (hdr.message_type) 
     {
       case msg_opts::options::registration_request:
         registration_request().to_json(j);
         break;
-  //     // JJW
-  //     std::cout << "JJW: [DL] NAS Registration Accept" << std::endl;
-
-  //     handle_registration_accept(nas_msg.registration_accept());
-  //     break;
-  //   case msg_opts::options::registration_reject:
-  //     // JJW
-  //     std::cout << "JJW: [DL] NAS Registration Reject" << std::endl;
-
-  //     handle_registration_reject(nas_msg.registration_reject());
-  //     break;
-  //   case msg_opts::options::authentication_reject:
-  //     // JJW
-  //     std::cout << "JJW: [DL] NAS Authentication Reject" << std::endl;
-
-  //     handle_authentication_reject(nas_msg.authentication_reject());
-  //     break;
-  //   case msg_opts::options::authentication_request:
-  //     // JJW
-  //     std::cout << "JJW: [DL] NAS Registration Request" << std::endl;
-
-  //     handle_authentication_request(nas_msg.authentication_request());
-  //     break;
-  //   case msg_opts::options::identity_request:
-  //     // JJW
-  //     std::cout << "JJW: [DL] NAS Identity Request" << std::endl;
-
-  //     handle_identity_request(nas_msg.identity_request());
-  //     break;
-  //   case msg_opts::options::security_mode_command:
-  //     // JJW
-  //     std::cout << "JJW: [DL] NAS Security Mode Command" << std::endl;
-
-  //     handle_security_mode_command(nas_msg.security_mode_command(), std::move(pdu));
-  //     break;
-  //   case msg_opts::options::service_accept:
-  //     // JJW
-  //     std::cout << "JJW: [DL] NAS Service Accept" << std::endl;
-
-  //     handle_service_accept(nas_msg.service_accept());
-  //     break;
-  //   case msg_opts::options::service_reject:
-  //     // JJW
-  //     std::cout << "JJW: [DL] NAS Service Reject" << std::endl;
-
-  //     handle_service_reject(nas_msg.service_reject());
-  //     break;
-  //   case msg_opts::options::deregistration_accept_ue_terminated:
-  //     // JJW
-  //     std::cout << "JJW: [DL] NAS Deregistration Accept" << std::endl;
-
-  //     handle_deregistration_accept_ue_terminated(nas_msg.deregistration_accept_ue_terminated());
-  //     break;
-  //   case msg_opts::options::deregistration_request_ue_terminated:
-  //     // JJW
-  //     std::cout << "JJW: [DL] NAS Deregistration Request" << std::endl;
-
-  //     handle_deregistration_request_ue_terminated(nas_msg.deregistration_request_ue_terminated());
-  //     break;
-  //   case msg_opts::options::dl_nas_transport:
-  //     // JJW
-  //     std::cout << "JJW: [DL] NAS DL NAS Transport" << std::endl;
-
-  //     handle_dl_nas_transport(nas_msg.dl_nas_transport());
-  //     break;
-  //   case msg_opts::options::deregistration_accept_ue_originating:
-  //     // JJW
-  //     std::cout << "JJW: [DL] NAS Deregistration Accept UE Origin" << std::endl;
-
-  //     handle_deregistration_accept_ue_originating(nas_msg.deregistration_accept_ue_originating());
-  //     break;
-  //   case msg_opts::options::configuration_update_command:
-  //     // JJW
-  //     std::cout << "JJW: [DL] NAS Config Update Command" << std::endl;
-
-  //     handle_configuration_update_command(nas_msg.configuration_update_command());
-  //     break;
-  //   default:
-  //     logger.error(
-  //         "Not handling NAS message type: %s (0x%02x)", nas_msg.hdr.message_type.to_string(), nas_msg.hdr.message_type);
-  //     break;
-  }
+      case msg_opts::options::registration_complete:
+        registration_complete().to_json(j);
+        break;
+      case msg_opts::options::registration_accept:
+        registration_accept().to_json(j);
+        break;
+      case msg_opts::options::registration_reject:
+        registration_reject().to_json(j);
+        break;
+      case msg_opts::options::authentication_reject:
+        authentication_reject().to_json(j);
+        break;
+      case msg_opts::options::authentication_request:
+        authentication_request().to_json(j);
+        break;
+      case msg_opts::options::authentication_response:
+        authentication_response().to_json(j);
+        break;
+      case msg_opts::options::identity_request:
+        identity_request().to_json(j);
+        break;
+      case msg_opts::options::identity_response:
+        identity_response().to_json(j);
+        break;
+      case msg_opts::options::security_mode_command:
+        security_mode_command().to_json(j);
+        break;
+      case msg_opts::options::security_mode_complete:
+        security_mode_complete().to_json(j);
+        break;
+      case msg_opts::options::service_accept:
+    //     handle_service_accept(nas_msg.service_accept());
+        break;
+      case msg_opts::options::service_reject:
+        break;
+    //     handle_service_reject(nas_msg.service_reject());
+      case msg_opts::options::deregistration_accept_ue_terminated:
+    //     handle_deregistration_accept_ue_terminated(nas_msg.deregistration_accept_ue_terminated());
+        break;
+      case msg_opts::options::deregistration_request_ue_terminated:
+    //     handle_deregistration_request_ue_terminated(nas_msg.deregistration_request_ue_terminated());
+        break;
+      case msg_opts::options::dl_nas_transport:
+    //     handle_dl_nas_transport(nas_msg.dl_nas_transport());
+        break;
+      case msg_opts::options::deregistration_accept_ue_originating:
+    //     handle_deregistration_accept_ue_originating(nas_msg.deregistration_accept_ue_originating());
+        break;
+      case msg_opts::options::configuration_update_command:
+    //     handle_configuration_update_command(nas_msg.configuration_update_command());
+        break;
+      default:
+        // logger.error(
+        //     "Not handling NAS message type: %s (0x%02x)", nas_msg.hdr.message_type.to_string(), nas_msg.hdr.message_type);
+        break;
+    }
 
   }
  
+  j.end_obj();
   j.end_obj();
   j.end_array();
 }
