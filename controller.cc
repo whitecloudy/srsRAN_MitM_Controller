@@ -30,7 +30,7 @@ struct sockaddr_in fake_UE_server_addr;
 struct sockaddr_in fake_gNB_server_addr;
 struct sockaddr_in fake_UE_addr, fake_gNB_addr;
 
-struct sockaddr_in backend_addr;
+struct sockaddr_in scenario_handler_addr;
 
 int fake_UE_server_sock;
 int fake_gNB_server_sock;
@@ -40,11 +40,10 @@ int backend_sock;
 int msg_count = 10;
 std::string packet2send;
 
-asn1::json_writer * json_buffer = new asn1::json_writer;
 
 void* worker(void *arg) {
   static std::mutex m;
-  printf("Thread Created!\n");
+  std::cout << "Thread Created!\n";
 
   int *fake_src_sock, *fake_dst_sock;
   struct sockaddr_in *fake_src_addr, *fake_dst_addr;
@@ -74,10 +73,13 @@ void* worker(void *arg) {
     socklen_t sn=sizeof(*fake_src_addr);
 
     int result;
-
+    asn1::json_writer * json_buffer = new asn1::json_writer;
+    std::cout << "Waiting" <<std::endl;
     int n=recvfrom(*fake_src_sock,buf,sizeof(buf),0,(struct sockaddr *)fake_src_addr,&sn);
-    //int n=recv(*fake_src_sock,buf,sizeof(buf),0);
+
     m.lock();
+    
+    json_buffer->start_array();
     if(dir_v == FROM_FAKE_UE){  //Target gNB's packet is arrive here
       result = gNB::decode_packet(buf, n, *json_buffer);
     }else if(dir_v ==FROM_FAKE_gNB){  //Target UE's packet is arrive here
@@ -85,46 +87,32 @@ void* worker(void *arg) {
     }else{
       std::cerr << "Error: Undefined dir_v!"<< std::endl;
     }
+    json_buffer->end_array();
 
-    // //std::cout << packet_json_p->to_string() << std::endl;
-    // m.lock();
-    // if(msg_count > 0)
-    // {
-    //   std::cout << msg_count << std::endl;
-    //   // if(msg_count != 6)
-    // //     packet2send += ',';
-      
-    //   std::string str = packet_json_p->to_string();
-    //   std::cout << str <<std::endl;
+    std::string to_backend = json_buffer->to_string();
 
-    //   packet2send += str;
+    sendto(backend_sock, to_backend.c_str(), to_backend.length(),0, (struct sockaddr *)&scenario_handler_addr, sizeof(scenario_handler_addr));
 
-    //   msg_count -= 1;
+    uint8_t buf2[65535];
+    socklen_t sn2= sizeof(scenario_handler_addr);
+    int n2 = recvfrom(backend_sock, buf2, sizeof(buf2), 0, (struct sockaddr *)&scenario_handler_addr, &sn2);
 
-    //   if(msg_count == 0)
-    //   {
-    msg_count -= 1;
-    //     // packet2send += ']';
-    //     // //std::cout << packet2send << std::endl;
-    //     // //std::cout << "hello?" << std::endl;
-        
-    //     // sendto(backend_sock, packet2send.c_str(), packet2send.length() ,0,(struct sockaddr *)&backend_addr,sizeof(backend_addr));
-    //   }
-    // }  
-    if(msg_count == 0)
+    if(buf2[0] == 0)
     {
-      json_buffer->end_array();
-      std::string str = json_buffer->to_string();
-      std::cout << str << std::endl;
-    }
-
-    m.unlock();
-    
-    if(n>0 && fake_dst_addr->sin_port>0) {
+      std::cout << "Relay" <<std::endl;
+      if(n>0 && fake_dst_addr->sin_port>0) {
       sendto(*fake_dst_sock,buf,n,0,(struct sockaddr *)fake_dst_addr,sizeof(*fake_dst_addr));
 
       printf("fake_src_sock: %d, fake_dst_sock: %d, fake_dst_addr port: %d, fake_src_addr port: %d, size: %d\n", *fake_src_sock, *fake_dst_sock, fake_dst_addr->sin_port, fake_src_addr->sin_port, n);
+      }
+    }else if(buf2[1] == 1)
+    {
+      //Handle Spoofing message here
     }
+    
+    delete json_buffer;
+
+    m.unlock();
   }
   return NULL;
 };
@@ -151,9 +139,9 @@ int main(int argc, char *argv[]) {
   fake_UE_server_addr.sin_addr.s_addr=inet_addr(LOOPBACK_IP);
   fake_UE_server_addr.sin_port=htons(FAKE_UE_SERVER_PORT);
 
-  backend_addr.sin_family=AF_INET;
-  backend_addr.sin_addr.s_addr = inet_addr("127.0.0.4");
-  backend_addr.sin_port = htons(8000);
+  scenario_handler_addr.sin_family=AF_INET;
+  scenario_handler_addr.sin_addr.s_addr = inet_addr("127.0.0.3");
+  scenario_handler_addr.sin_port = htons(8080);
 
   if(bind(fake_UE_server_sock,(struct sockaddr *)&fake_UE_server_addr,sizeof(fake_UE_server_addr))==-1) {
 	  printf("Bind fake_UE_server_sock Error!\n");
@@ -171,7 +159,6 @@ int main(int argc, char *argv[]) {
   pthread_t UE2gNB_proc, gNB2UE_proc;
   enum RELAY_DIR argv1 = FROM_FAKE_UE;
   enum RELAY_DIR argv2 = FROM_FAKE_gNB;
-  json_buffer->start_array();
   pthread_create(&UE2gNB_proc, NULL, worker, (void*)(&argv1));
   pthread_create(&gNB2UE_proc, NULL, worker, (void*)(&argv2));
 
