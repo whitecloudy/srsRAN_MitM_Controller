@@ -331,6 +331,152 @@ SRSASN_CODE registration_request_t::unpack(asn1::cbit_ref& bref)
   return SRSASN_SUCCESS;
 }
 
+void registration_request_t::to_json(json_writer& j)
+{
+  j.write_fieldname("Registration request");
+
+  j.start_obj();
+  // Mandatory fields
+
+  j.write_fieldname("ngKSI");
+  ng_ksi.to_json(j);
+  j.write_fieldname("5GS registration type");
+  registration_type_5gs.to_json(j);
+  j.write_fieldname("5GS mobile identity");
+  mobile_identity_5gs.to_json(j);
+
+  // Optional fields
+  if (non_current_native_nas_key_set_identifier_present == true) {
+    j.write_fieldname("Non-current native NAS key set identifier");
+    non_current_native_nas_key_set_identifier.to_json(j);
+  }
+  if (capability_5gmm_present == true) {
+    j.write_fieldname("5GMM capability");
+    capability_5gmm.to_json(j);
+  }
+  if (ue_security_capability_present == true) {
+    j.write_fieldname("UE security capability");
+    ue_security_capability.to_json(j);
+  }
+  if (requested_nssai_present == true) {
+    j.write_fieldname("Requested NSSAI");
+    requested_nssai.to_json(j);
+  }
+  if (last_visited_registered_tai_present == true) {
+    j.write_fieldname("Last visited registered TAI");
+    last_visited_registered_tai.to_json(j);
+  }
+  if (s1_ue_network_capability_present == true) {
+    j.write_fieldname("S1 UE network capability");
+    s1_ue_network_capability.to_json(j);
+  }
+  if (uplink_data_status_present == true) {
+    j.write_fieldname("Uplink data status");
+    uplink_data_status.to_json(j);
+  }
+  if (pdu_session_status_present == true) {
+    j.write_fieldname("PDU session status");
+    pdu_session_status.to_json(j);
+  }
+  if (mico_indication_present == true) {
+    j.write_fieldname("MICO indication");
+    mico_indication.to_json(j);
+  }
+  if (ue_status_present == true) {
+    j.write_fieldname("UE status");
+    ue_status.to_json(j);
+  }
+  if (additional_guti_present == true) {
+    j.write_fieldname("Additional GUTI");
+    additional_guti.to_json(j);
+  }
+  if (allowed_pdu_session_status_present == true) {
+    j.write_fieldname("Allowed PDU session status");
+    allowed_pdu_session_status.to_json(j);
+  }
+  if (ue_usage_setting_present == true) {
+    j.write_fieldname("UE's usage setting");
+    ue_usage_setting.to_json(j);
+  }
+  if (requested_drx_parameters_present == true) {
+    j.write_fieldname("Requested DRX parameters ");
+    requested_drx_parameters.to_json(j);
+  }
+  if (eps_nas_message_container_present == true) {
+    j.write_fieldname("EPS NAS message container");
+    eps_nas_message_container.to_json(j);
+  }
+  if (ladn_indication_present == true) {
+    j.write_fieldname("LADN indication");
+    ladn_indication.to_json(j);
+  }
+  if (payload_container_type_present == true) {
+    j.write_fieldname("Payload container type ");
+    payload_container_type.to_json(j);
+  }
+  if (payload_container_present == true) {
+    j.write_fieldname("Payload container");
+    payload_container.to_json(j);
+  }
+  if (network_slicing_indication_present == true) {
+    j.write_fieldname("Network slicing indication ");
+    network_slicing_indication.to_json(j);
+  }
+  if (update_type_5gs_present == true) {
+    j.write_fieldname("5GS update type");
+    update_type_5gs.to_json(j);
+  }
+  if (mobile_station_classmark_2_present == true) {
+    j.write_fieldname("Mobile station classmark 2");
+    mobile_station_classmark_2.to_json(j);
+  }
+  if (supported_codecs_present == true) {
+    j.write_fieldname("Supported codecs");
+    supported_codecs.to_json(j);
+  }
+  if (nas_message_container_present == true) {
+    j.write_fieldname("NAS message container");
+    nas_message_container.to_json(j);
+  }
+  if (eps_bearer_context_status_present == true) {
+    j.write_fieldname("");
+    eps_bearer_context_status.to_json(j);
+  }
+  if (requested_extended_drx_parameters_present == true) {
+    j.write_fieldname("Requested extended DRX parameters");
+    requested_extended_drx_parameters.to_json(j);
+  }
+  if (t3324_value_present == true) {
+    j.write_fieldname("T3324 value");
+    t3324_value.to_json(j);
+  }
+  if (ue_radio_capability_id_present == true) {
+    j.write_fieldname("UE radio capability ID");
+    ue_radio_capability_id.to_json(j);
+  }
+  if (requested_mapped_nssai_present == true) {
+    j.write_fieldname("Requested mapped NSSAI");
+    requested_mapped_nssai.to_json(j);
+  }
+  if (additional_information_requested_present == true) {
+    j.write_fieldname("Additional information requested");
+    additional_information_requested.to_json(j);
+  }
+  if (requested_wus_assistance_information_present == true) {
+    j.write_fieldname("Requested WUS assistance information");
+    requested_wus_assistance_information.to_json(j);
+  }
+  if (n5gc_indication_present == true) {
+    j.write_fieldname("N5GC indication");
+    n5gc_indication.to_json(j);
+  }
+  if (requested_nb_n1_mode_drx_parameters_present == true) {
+    j.write_fieldname("Requested NB-N1 mode DRX parameters");
+    requested_nb_n1_mode_drx_parameters.to_json(j);
+  }
+  j.end_obj();
+}
+
 SRSASN_CODE registration_accept_t::pack(asn1::bit_ref& bref)
 {
   // Mandatory fields
@@ -672,6 +818,171 @@ SRSASN_CODE registration_accept_t::unpack(asn1::cbit_ref& bref)
   return SRSASN_SUCCESS;
 }
 
+void        registration_accept_t::to_json(json_writer& j)
+{
+  j.write_fieldname("Registration accept");
+
+  j.start_obj();
+  // Mandatory fields
+  j.write_fieldname("5GS registration result");
+  registration_result_5gs.to_json(j);
+
+  // Optional fields
+  if (guti_5g_present == true) {
+    j.write_fieldname("5G-GUTI");
+    guti_5g.to_json(j);
+  }
+  if (equivalent_plm_ns_present == true) {
+    j.write_fieldname("Equivalent PLMNs");
+    equivalent_plm_ns.to_json(j);
+  }
+  if (tai_list_present == true) {
+    j.write_fieldname("TAI list");
+    tai_list.to_json(j);
+  }
+  if (allowed_nssai_present == true) {
+    j.write_fieldname("Allowed NSSAI");
+    allowed_nssai.to_json(j);
+  }
+  if (rejected_nssai_present == true) {
+    j.write_fieldname("Rejected NSSAI");
+    rejected_nssai.to_json(j);
+  }
+  if (configured_nssai_present == true) {
+    j.write_fieldname("Configured NSSAI");
+    configured_nssai.to_json(j);
+  }
+  if (network_feature_support_5gs_present == true) {
+    j.write_fieldname("5GS network feature support");
+    network_feature_support_5gs.to_json(j);
+  }
+  if (pdu_session_status_present == true) {
+    j.write_fieldname("PDU session status");
+    pdu_session_status.to_json(j);
+  }
+  if (pdu_session_reactivation_result_present == true) {
+    j.write_fieldname("PDU session reactivation result");
+    pdu_session_reactivation_result.to_json(j);
+  }
+  if (pdu_session_reactivation_result_error_cause_present == true) {
+    j.write_fieldname("PDU session reactivation result error cause");
+    pdu_session_reactivation_result_error_cause.to_json(j);
+  }
+  if (ladn_information_present == true) {
+    j.write_fieldname("LADN information");
+    ladn_information.to_json(j);
+  }
+  if (mico_indication_present == true) {
+    j.write_fieldname("MICO indication");
+    mico_indication.to_json(j);
+  }
+  if (network_slicing_indication_present == true) {
+    j.write_fieldname("Network slicing indication");
+    network_slicing_indication.to_json(j);
+  }
+  if (service_area_list_present == true) {
+    j.write_fieldname("Service area list");
+    service_area_list.to_json(j);
+  }
+  if (t3512_value_present == true) {
+    j.write_fieldname("T3512 value");
+    t3512_value.to_json(j);
+  }
+  if (non_3_gpp_de_registration_timer_value_present == true) {
+    j.write_fieldname("Non-3GPP de-registration timer value");
+    non_3_gpp_de_registration_timer_value.to_json(j);
+  }
+  if (t3502_value_present == true) {
+    j.write_fieldname("T3502 value");
+    t3502_value.to_json(j);
+  }
+  if (emergency_number_list_present == true) {
+    j.write_fieldname("Emergency number list");
+    emergency_number_list.to_json(j);
+  }
+  if (extended_emergency_number_list_present == true) {
+    j.write_fieldname("Extended emergency number list");
+    extended_emergency_number_list.to_json(j);
+  }
+  if (sor_transparent_container_present == true) {
+    j.write_fieldname("SOR transparent container ");
+    sor_transparent_container.to_json(j);
+  }
+  if (eap_message_present == true) {
+    j.write_fieldname("EAP message");
+    eap_message.to_json(j);
+  }
+  if (nssai_inclusion_mode_present == true) {
+    j.write_fieldname("NSSAI inclusion mode");
+    nssai_inclusion_mode.to_json(j);
+  }
+  if (operator_defined_access_category_definitions_present == true) {
+    j.write_fieldname("Operator-defined access category definitions");
+    operator_defined_access_category_definitions.to_json(j);
+  }
+  if (negotiated_drx_parameters_present == true) {
+    j.write_fieldname("Negotiated DRX parameters");
+    negotiated_drx_parameters.to_json(j);
+  }
+  if (non_3_gpp_nw_policies_present == true) {
+    j.write_fieldname("Non-3GPP NW policies");
+    non_3_gpp_nw_policies.to_json(j);
+  }
+  if (eps_bearer_context_status_present == true) {
+    j.write_fieldname("EPS bearer context status");
+    eps_bearer_context_status.to_json(j);
+  }
+  if (negotiated_extended_drx_parameters_present == true) {
+    j.write_fieldname("Negotiated extended DRX parameters");
+    negotiated_extended_drx_parameters.to_json(j);
+  }
+  if (t3447_value_present == true) {
+    j.write_fieldname("T3447 value");
+    t3447_value.to_json(j);
+  }
+  if (t3448_value_present == true) {
+    j.write_fieldname("T3448 value");
+    t3448_value.to_json(j);
+  }
+  if (t3324_value_present == true) {
+    j.write_fieldname("T3324 value");
+    t3324_value.to_json(j);
+  }
+  if (ue_radio_capability_id_present == true) {
+    j.write_fieldname("UE radio capability ID");
+    ue_radio_capability_id.to_json(j);
+  }
+  if (ue_radio_capability_id_deletion_indication_present == true) {
+    j.write_fieldname("UE radio capability ID deletion indication");
+    ue_radio_capability_id_deletion_indication.to_json(j);
+  }
+  if (pending_nssai_present == true) {
+    j.write_fieldname("Pending NSSAI");
+    pending_nssai.to_json(j);
+  }
+  if (ciphering_key_data_present == true) {
+    j.write_fieldname("Ciphering key data");
+    ciphering_key_data.to_json(j);
+  }
+  if (cag_information_list_present == true) {
+    j.write_fieldname("CAG information list");
+    cag_information_list.to_json(j);
+  }
+  if (truncated_5g_s_tmsi_configuration_present == true) {
+    j.write_fieldname("Truncated 5G-S-TMSI configuration");
+    truncated_5g_s_tmsi_configuration.to_json(j);
+  }
+  if (negotiated_wus_assistance_information_present == true) {
+    j.write_fieldname("Negotiated WUS assistance information");
+    negotiated_wus_assistance_information.to_json(j);
+  }
+  if (negotiated_nb_n1_mode_drx_parameters_present == true) {
+    j.write_fieldname("Negotiated NB-N1 mode DRX parameters");
+    negotiated_nb_n1_mode_drx_parameters.to_json(j);
+  }
+  j.end_obj();
+}
+
 SRSASN_CODE registration_complete_t::pack(asn1::bit_ref& bref)
 {
   // Mandatory fields
@@ -714,6 +1025,23 @@ SRSASN_CODE registration_complete_t::unpack(asn1::cbit_ref& bref)
 
   return SRSASN_SUCCESS;
 }
+
+void        registration_complete_t::to_json(json_writer& j)
+{
+  j.write_fieldname("Registration complete");
+
+  j.start_obj();
+  // Mandatory fields
+
+  // Optional fields
+  if (sor_transparent_container_present == true) {
+    j.write_fieldname("SOR transparent container");
+    sor_transparent_container.to_json(j);
+  }
+  j.end_obj();
+}
+
+
 
 SRSASN_CODE registration_reject_t::pack(asn1::bit_ref& bref)
 {
@@ -790,6 +1118,39 @@ SRSASN_CODE registration_reject_t::unpack(asn1::cbit_ref& bref)
   }
 
   return SRSASN_SUCCESS;
+}
+
+void        registration_reject_t::to_json(json_writer& j) const
+{
+  j.write_fieldname("Registration reject");
+  j.start_obj();
+  // Mandatory fields
+  j.write_fieldname("5GMM cause");
+  cause_5gmm.to_json(j);
+
+  // Optional fields
+  if (t3346_value_present == true) {
+    j.write_fieldname("T3346 value");
+    t3346_value.to_json(j);
+  }
+  if (t3502_value_present == true) {
+    j.write_fieldname("T3502 value");
+    t3502_value.to_json(j);
+  }
+  if (eap_message_present == true) {
+    j.write_fieldname("EAP message");
+    eap_message.to_json(j);
+  }
+  if (rejected_nssai_present == true) {
+    j.write_fieldname("Rejected NSSAI ");
+    rejected_nssai.to_json(j);
+  }
+  if (cag_information_list_present == true) {
+    j.write_fieldname("CAG information list");
+    cag_information_list.to_json(j);
+  }
+
+  j.end_obj();
 }
 
 SRSASN_CODE deregistration_request_ue_originating_t::pack(asn1::bit_ref& bref)
@@ -1526,6 +1887,33 @@ SRSASN_CODE authentication_request_t::unpack(asn1::cbit_ref& bref)
   return SRSASN_SUCCESS;
 }
 
+void        authentication_request_t::to_json(json_writer& j) const
+{
+  j.write_fieldname("Authentication request");
+  j.start_obj();
+  // Mandatory fields
+  j.write_fieldname("ngKSI");
+  ng_ksi.to_json(j);
+  j.write_fieldname("ABBA");
+  abba.to_json(j);
+
+  // Optional fields
+  if (authentication_parameter_rand_present == true) {
+    j.write_fieldname("Authentication parameter RAND");
+    authentication_parameter_rand.to_json(j);
+  }
+  if (authentication_parameter_autn_present == true) {
+    j.write_fieldname("Authentication parameter AUTN");
+    authentication_parameter_autn.to_json(j);
+  }
+  if (eap_message_present == true) {
+    j.write_fieldname("EAP message");
+    eap_message.to_json(j);
+  }
+
+  j.end_obj();
+}
+
 SRSASN_CODE authentication_response_t::pack(asn1::bit_ref& bref)
 {
   // Mandatory fields
@@ -1577,6 +1965,25 @@ SRSASN_CODE authentication_response_t::unpack(asn1::cbit_ref& bref)
   return SRSASN_SUCCESS;
 }
 
+void        authentication_response_t::to_json(json_writer& j) const
+{
+  j.write_fieldname("Authentication response");
+  j.start_obj();
+  // Mandatory fields
+
+  // Optional fields
+  if (authentication_response_parameter_present == true) {
+    j.write_fieldname("Authentication response parameter");
+    authentication_response_parameter.to_json(j);
+  }
+  if (eap_message_present == true) {
+    j.write_fieldname("EAP message");
+    eap_message.to_json(j);
+  }
+
+  j.end_obj();
+}
+
 SRSASN_CODE authentication_reject_t::pack(asn1::bit_ref& bref)
 {
   // Mandatory fields
@@ -1619,6 +2026,22 @@ SRSASN_CODE authentication_reject_t::unpack(asn1::cbit_ref& bref)
 
   return SRSASN_SUCCESS;
 }
+
+void        authentication_reject_t::to_json(json_writer& j) const
+{
+  j.write_fieldname("Authentication reject");
+  j.start_obj();
+  // Mandatory fields
+
+  // Optional fields
+  if (eap_message_present == true) {
+    j.write_fieldname("EAP message");
+    eap_message.to_json(j);
+  }
+
+  j.end_obj();
+}
+
 
 SRSASN_CODE authentication_failure_t::pack(asn1::bit_ref& bref)
 {
@@ -1664,6 +2087,24 @@ SRSASN_CODE authentication_failure_t::unpack(asn1::cbit_ref& bref)
 
   return SRSASN_SUCCESS;
 }
+
+void        authentication_failure_t::to_json(json_writer& j) const
+{
+  j.write_fieldname("Authentication failure");
+  j.start_obj();
+  // Mandatory fields
+  j.write_fieldname("5GMM cause");
+  cause_5gmm.to_json(j);
+
+  // Optional fields
+  if (authentication_failure_parameter_present == true) {
+    j.write_fieldname("Authentication failure parameter");
+    authentication_failure_parameter.to_json(j);
+  }
+
+  j.end_obj();
+}
+
 
 SRSASN_CODE authentication_result_t::pack(asn1::bit_ref& bref)
 {
@@ -1714,6 +2155,26 @@ SRSASN_CODE authentication_result_t::unpack(asn1::cbit_ref& bref)
   return SRSASN_SUCCESS;
 }
 
+void        authentication_result_t::to_json(json_writer& j) const
+{
+  j.write_fieldname("Authentication result");
+  j.start_obj();
+  // Mandatory fields
+  j.write_fieldname("ngKSI");
+  ng_ksi.to_json(j);
+  j.write_fieldname("EAP message");
+  eap_message.to_json(j);
+
+  // Optional fields
+  if (abba_present == true) {
+    j.write_fieldname("ABBA");
+    abba.to_json(j);
+  }
+
+  j.end_obj();
+}
+
+
 SRSASN_CODE identity_request_t::pack(asn1::bit_ref& bref)
 {
   // Mandatory fields
@@ -1753,6 +2214,17 @@ SRSASN_CODE identity_request_t::unpack(asn1::cbit_ref& bref)
   return SRSASN_SUCCESS;
 }
 
+void        identity_request_t::to_json(json_writer& j) const
+{
+  j.write_fieldname("Identity request");
+  j.start_obj();
+
+  j.write_fieldname("Identity type");
+  identity_type.to_json(j);
+
+  j.end_obj();
+}
+
 SRSASN_CODE identity_response_t::pack(asn1::bit_ref& bref)
 {
   // Mandatory fields
@@ -1788,6 +2260,17 @@ SRSASN_CODE identity_response_t::unpack(asn1::cbit_ref& bref)
   }
 
   return SRSASN_SUCCESS;
+}
+
+void        identity_response_t::to_json(json_writer& j)
+{
+  j.write_fieldname("Identity response");
+  j.start_obj();
+
+  j.write_fieldname("Mobile identity");
+  mobile_identity.to_json(j);
+
+  j.end_obj();
 }
 
 SRSASN_CODE security_mode_command_t::pack(asn1::bit_ref& bref)
@@ -1881,6 +2364,48 @@ SRSASN_CODE security_mode_command_t::unpack(asn1::cbit_ref& bref)
   return SRSASN_SUCCESS;
 }
 
+void        security_mode_command_t::to_json(json_writer& j)
+{
+  j.write_fieldname("Security mode command");
+  j.start_obj();
+
+  // Mandatory fields
+  j.write_fieldname("Selected NAS security algorithms");
+  selected_nas_security_algorithms.to_json(j);
+  j.write_fieldname("Selected NAS security algorithms");
+  ng_ksi.to_json(j);
+  j.write_fieldname("Replayed UE security capabilities");
+  replayed_ue_security_capabilities.to_json(j);
+
+  // Optional fields
+  if (imeisv_request_present == true) {
+    j.write_fieldname("IMEISV request");
+    imeisv_request.to_json(j);
+  }
+  if (selected_eps_nas_security_algorithms_present == true) {
+    j.write_fieldname("Selected EPS NAS security algorithms");
+    selected_eps_nas_security_algorithms.to_json(j);
+  }
+  if (additional_5g_security_information_present == true) {
+    j.write_fieldname("Additional 5G security information");
+    additional_5g_security_information.to_json(j);
+  }
+  if (eap_message_present == true) {
+    j.write_fieldname("EAP message");
+    eap_message.to_json(j);
+  }
+  if (abba_present == true) {
+    j.write_fieldname("ABBA");
+    abba.to_json(j);
+  }
+  if (replayed_s1_ue_security_capabilities_present == true) {
+    j.write_fieldname("Replayed S1 UE security capabilities");
+    replayed_s1_ue_security_capabilities.to_json(j);
+  }
+
+  j.end_obj();
+}
+
 SRSASN_CODE security_mode_complete_t::pack(asn1::bit_ref& bref)
 {
   // Mandatory fields
@@ -1940,6 +2465,29 @@ SRSASN_CODE security_mode_complete_t::unpack(asn1::cbit_ref& bref)
   return SRSASN_SUCCESS;
 }
 
+void        security_mode_complete_t::to_json(json_writer& j)
+{
+  j.write_fieldname("Security mode complete");
+  j.start_obj();
+  // Mandatory fields
+
+  // Optional fields
+  if (imeisv_present == true) {
+    j.write_fieldname("IMEISV");
+    imeisv.to_json(j);
+  }
+  if (nas_message_container_present == true) {
+    j.write_fieldname("NAS message container");  
+    nas_message_container.to_json(j);
+  }
+  if (non_imeisv_pei_present == true) {
+    j.write_fieldname("non-IMEISV PEI ");
+    non_imeisv_pei.to_json(j);
+  }
+
+  j.end_obj();
+}
+
 SRSASN_CODE security_mode_reject_t::pack(asn1::bit_ref& bref)
 {
   // Mandatory fields
@@ -1976,6 +2524,19 @@ SRSASN_CODE security_mode_reject_t::unpack(asn1::cbit_ref& bref)
 
   return SRSASN_SUCCESS;
 }
+
+void        security_mode_reject_t::to_json(json_writer& j)
+{
+  j.write_fieldname("Security mode reject");
+
+  j.start_obj();
+  // Mandatory fields
+  j.write_fieldname("5GMM cause");
+  cause_5gmm.to_json(j);
+
+  j.end_obj();
+}
+
 
 SRSASN_CODE status_5gmm_t::pack(asn1::bit_ref& bref)
 {
@@ -3622,6 +4183,50 @@ SRSASN_CODE nas_5gs_hdr::pack(asn1::bit_ref& bref)
   return SRSASN_SUCCESS;
 }
 
+void nas_5gs_hdr::to_json(json_writer & j) const
+{
+  switch(extended_protocol_discriminator)
+  {
+    case extended_protocol_discriminator_5gmm:
+      j.write_str("Extended protocol discriminator", "5gmm");
+      if(security_header_type == plain_5gs_nas_message)
+      {
+        j.write_str("Security header type", "Plain 5gs nas message");
+        j.write_str("Message type", message_type.to_string());
+      }else
+      {
+        switch(security_header_type)
+        {
+          case integrity_protected:
+            j.write_str("Security header type", "Integrity protected");
+            break;
+          case integrity_protected_and_ciphered:
+            j.write_str("Security header type", "Integrity protected and ciphered");
+            break;
+          case integrity_protected_with_new_5G_nas_context:
+            j.write_str("Security header type", "Integrity protected with new 5G nas context");
+            break;    
+          case integrity_protected_and_ciphered_with_new_5G_nas_context:
+            j.write_str("Security header type", "Integrity protected and ciphered with new 5G nas context");
+            break;
+          default:
+            log_invalid_choice_id(security_header_type, "nas_5gs_hdr");
+        }
+        j.write_int("Message authentication code", message_authentication_code);
+        j.write_int("Sequence number", sequence_number);
+      }
+      break;
+    case extended_protocol_discriminator_5gsm:
+      j.write_str("Extended protocol discriminator", "5gsm");
+      //TODO : We do not handle 5gsm yet
+      log_debug("We do not handle 5gsm yet");
+      break;
+    default:
+      log_invalid_choice_id(extended_protocol_discriminator, "nas_5gs_hdr");
+  }
+
+}
+
 SRSASN_CODE nas_5gs_msg::pack(unique_byte_buffer_t& buf)
 {
   asn1::bit_ref msg_bref(buf->msg, buf->get_tailroom());
@@ -3883,6 +4488,85 @@ SRSASN_CODE nas_5gs_msg::pack(asn1::bit_ref& msg_bref)
       break;
   }
   return SRSASN_SUCCESS;
+}
+
+void nas_5gs_msg::to_json(json_writer& j)
+{
+  j.start_array();
+  j.start_obj();
+  j.write_fieldname("5GS mobility management");
+  j.start_obj();
+  hdr.to_json(j);
+
+  if(hdr.security_header_type != nas_5gs_hdr::integrity_protected_and_ciphered and hdr.security_header_type != nas_5gs_hdr::integrity_protected_and_ciphered_with_new_5G_nas_context)
+  {
+    switch (hdr.message_type) 
+    {
+      case msg_opts::options::registration_request:
+        registration_request().to_json(j);
+        break;
+      case msg_opts::options::registration_complete:
+        registration_complete().to_json(j);
+        break;
+      case msg_opts::options::registration_accept:
+        registration_accept().to_json(j);
+        break;
+      case msg_opts::options::registration_reject:
+        registration_reject().to_json(j);
+        break;
+      case msg_opts::options::authentication_reject:
+        authentication_reject().to_json(j);
+        break;
+      case msg_opts::options::authentication_request:
+        authentication_request().to_json(j);
+        break;
+      case msg_opts::options::authentication_response:
+        authentication_response().to_json(j);
+        break;
+      case msg_opts::options::identity_request:
+        identity_request().to_json(j);
+        break;
+      case msg_opts::options::identity_response:
+        identity_response().to_json(j);
+        break;
+      case msg_opts::options::security_mode_command:
+        security_mode_command().to_json(j);
+        break;
+      case msg_opts::options::security_mode_complete:
+        security_mode_complete().to_json(j);
+        break;
+      case msg_opts::options::service_accept:
+    //     handle_service_accept(nas_msg.service_accept());
+        break;
+      case msg_opts::options::service_reject:
+        break;
+    //     handle_service_reject(nas_msg.service_reject());
+      case msg_opts::options::deregistration_accept_ue_terminated:
+    //     handle_deregistration_accept_ue_terminated(nas_msg.deregistration_accept_ue_terminated());
+        break;
+      case msg_opts::options::deregistration_request_ue_terminated:
+    //     handle_deregistration_request_ue_terminated(nas_msg.deregistration_request_ue_terminated());
+        break;
+      case msg_opts::options::dl_nas_transport:
+    //     handle_dl_nas_transport(nas_msg.dl_nas_transport());
+        break;
+      case msg_opts::options::deregistration_accept_ue_originating:
+    //     handle_deregistration_accept_ue_originating(nas_msg.deregistration_accept_ue_originating());
+        break;
+      case msg_opts::options::configuration_update_command:
+    //     handle_configuration_update_command(nas_msg.configuration_update_command());
+        break;
+      default:
+        // logger.error(
+        //     "Not handling NAS message type: %s (0x%02x)", nas_msg.hdr.message_type.to_string(), nas_msg.hdr.message_type);
+        break;
+    }
+
+  }
+ 
+  j.end_obj();
+  j.end_obj();
+  j.end_array();
 }
 
 SRSASN_CODE nas_5gs_msg::unpack_outer_hdr(const unique_byte_buffer_t& buf)

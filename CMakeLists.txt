@@ -44,6 +44,7 @@ endif(POLARSSL_FOUND)
 ########################################################################
 
 set (EXEC_LIB_LIST  rrc_nr_asn1
+                    nas_5g_msg
                     asn1_utils
                     srsran_common
                     controller_src)

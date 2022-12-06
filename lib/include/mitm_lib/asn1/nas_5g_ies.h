@@ -69,6 +69,7 @@ public:
 
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
+  void        to_json(json_writer& j) const;
 
 }; // registration_type_5gs_t
 
@@ -102,7 +103,7 @@ public:
 
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
-
+  void        to_json(json_writer& j) const;
 }; // key_set_identifier_t
 
 // IE: 5GS mobile identity
@@ -165,6 +166,7 @@ public:
 
     SRSASN_CODE pack(asn1::bit_ref& bref, asn1::bit_ref& bref_tmp);
     SRSASN_CODE unpack(asn1::cbit_ref& bref, uint8_t tmp, uint32_t length);
+    void        to_json(json_writer& j);
 
   }; // suci
   class guti_5g_s
@@ -179,6 +181,7 @@ public:
 
     SRSASN_CODE pack(asn1::bit_ref& bref, asn1::bit_ref& bref_tmp);
     SRSASN_CODE unpack(asn1::cbit_ref& bref, uint8_t tmp, uint32_t length);
+    void        to_json(json_writer& j);
 
   }; // guti_5g
   class imei_s
@@ -189,6 +192,7 @@ public:
 
     SRSASN_CODE pack(asn1::bit_ref& bref, asn1::bit_ref& bref_tmp);
     SRSASN_CODE unpack(asn1::cbit_ref& bref, uint8_t tmp, uint32_t length);
+    void        to_json(json_writer& j);
 
   }; // imei
   class s_tmsi_5g_s
@@ -200,6 +204,7 @@ public:
 
     SRSASN_CODE pack(asn1::bit_ref& bref, asn1::bit_ref& bref_tmp);
     SRSASN_CODE unpack(asn1::cbit_ref& bref, uint8_t tmp, uint32_t length);
+    void        to_json(json_writer& j);
 
   }; // s_tmsi_5g
   class imeisv_s
@@ -210,6 +215,7 @@ public:
 
     SRSASN_CODE pack(asn1::bit_ref& bref, asn1::bit_ref& bref_tmp);
     SRSASN_CODE unpack(asn1::cbit_ref& bref, uint8_t tmp, uint32_t length);
+    void        to_json(json_writer& j);
 
   }; // imeisv
   class mac_address_s
@@ -219,6 +225,7 @@ public:
 
     SRSASN_CODE pack(asn1::bit_ref& bref, asn1::bit_ref& bref_tmp);
     SRSASN_CODE unpack(asn1::cbit_ref& bref, uint8_t tmp, uint32_t length);
+    void        to_json(json_writer& j);
 
   }; // mac_address
   class eui_64_s
@@ -228,6 +235,7 @@ public:
 
     SRSASN_CODE pack(asn1::bit_ref& bref, asn1::bit_ref& bref_tmp);
     SRSASN_CODE unpack(asn1::cbit_ref& bref, uint8_t tmp, uint32_t length);
+    void        to_json(json_writer& j);
 
   }; // eui_64
 
@@ -326,6 +334,7 @@ public:
 
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
+  void        to_json(json_writer& j);
 
 private:
   identity_types      type_ = identity_types_::options::no_identity;
@@ -361,6 +370,7 @@ public:
 
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
+  void to_json(json_writer& j) const;
 
 }; // capability_5gmm_t
 
@@ -405,7 +415,7 @@ public:
 
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
-
+  void        to_json(json_writer& j) const;
 }; // ue_security_capability_t
 
 // IE: S-NSSAI
@@ -436,7 +446,7 @@ public:
 
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
-
+  void        to_json(json_writer& j) const;
 }; // s_nssai_t
 
 // IE: NSSAI
@@ -448,7 +458,7 @@ public:
 
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
-
+  void        to_json(json_writer& j) const;
 }; // nssai_t
 
 // IE: 5GS tracking area identity
@@ -462,7 +472,7 @@ public:
 
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
-
+  void        to_json(json_writer& j) const;
 }; // tracking_area_identity_5gs_t
 
 // IE: S1 UE network capability
@@ -534,7 +544,7 @@ public:
 
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
-
+  void        to_json(json_writer& j) const;
 }; // s1_ue_network_capability_t
 
 // IE: Uplink data status
@@ -561,7 +571,7 @@ public:
 
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
-
+  void        to_json(json_writer& j) const;
 }; // uplink_data_status_t
 
 // IE: PDU session status
@@ -588,7 +598,7 @@ public:
 
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
-
+  void        to_json(json_writer& j) const;
 }; // pdu_session_status_t
 
 // IE: MICO indication
@@ -601,7 +611,7 @@ public:
 
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
-
+  void        to_json(json_writer& j) const;
 }; // mico_indication_t
 
 // IE: UE status
@@ -614,6 +624,7 @@ public:
 
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
+  void        to_json(json_writer& j) const;
 
 }; // ue_status_t
 
@@ -641,6 +652,7 @@ public:
 
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
+  void        to_json(json_writer& j) const;
 
 }; // allowed_pdu_session_status_t
 
@@ -663,7 +675,7 @@ public:
 
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
-
+  void        to_json(json_writer& j) const;
 }; // ue_usage_setting_t
 
 // IE: 5GS DRX parameters
@@ -688,6 +700,7 @@ public:
 
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
+  void        to_json(json_writer& j) const;
 
 }; // drx_parameters_5gs_t
 
@@ -700,7 +713,7 @@ public:
 
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
-
+  void        to_json(json_writer& j) const;
 }; // eps_nas_message_container_t
 
 // IE: DNN
@@ -712,6 +725,7 @@ public:
 
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
+  void        to_json(json_writer& j) const;
 
 }; // dnn_t
 
@@ -724,6 +738,7 @@ public:
 
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
+  void        to_json(json_writer& j) const;
 
 }; // ladn_indication_t
 
@@ -753,7 +768,7 @@ public:
 
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
-
+  void        to_json(json_writer& j) const;
 }; // payload_container_type_t
 
 // IE: Payload container
@@ -765,7 +780,7 @@ public:
 
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
-
+  void        to_json(json_writer& j) const;
 }; // payload_container_t
 
 // IE: Network slicing indication
@@ -778,6 +793,7 @@ public:
 
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
+  void        to_json(json_writer& j) const;
 
 }; // network_slicing_indication_t
 
@@ -837,6 +853,7 @@ public:
 
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
+  void        to_json(json_writer& j) const;
 
 }; // update_type_5gs_t
 
@@ -847,7 +864,7 @@ class mobile_station_classmark_2_t
 public:
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
-
+  void        to_json(json_writer& j) const;
 }; // mobile_station_classmark_2_t
 
 // IE: Supported codec list
@@ -857,7 +874,7 @@ class supported_codec_list_t
 public:
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
-
+  void        to_json(json_writer& j) const;
 }; // supported_codec_list_t
 
 // IE: message container
@@ -869,7 +886,7 @@ public:
 
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
-
+  void        to_json(json_writer& j) const;
 }; // message_container_t
 
 // IE: EPS bearer context status
@@ -896,6 +913,7 @@ public:
 
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
+  void        to_json(json_writer& j) const;
 
 }; // eps_bearer_context_status_t
 
@@ -957,6 +975,7 @@ public:
 
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
+  void        to_json(json_writer& j) const;
 
 }; // extended_drx_parameters_t
 
@@ -986,6 +1005,7 @@ public:
 
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
+  void        to_json(json_writer& j) const;
 
 }; // gprs_timer_3_t
 
@@ -998,6 +1018,7 @@ public:
 
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
+  void        to_json(json_writer& j) const;
 
 }; // ue_radio_capability_id_t
 
@@ -1008,6 +1029,7 @@ class mapped_nssai_t
 public:
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
+  void        to_json(json_writer& j) const;
 
 }; // mapped_nssai_t
 
@@ -1020,6 +1042,7 @@ public:
 
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
+  void        to_json(json_writer& j) const;
 
 }; // additional_information_requested_t
 
@@ -1030,6 +1053,7 @@ class wus_assistance_information_t
 public:
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
+  void        to_json(json_writer& j) const;
 
 }; // wus_assistance_information_t
 
@@ -1042,6 +1066,7 @@ public:
 
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
+  void        to_json(json_writer& j) const;
 
 }; // n5gc_indication_t
 
@@ -1069,6 +1094,7 @@ public:
 
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
+  void        to_json(json_writer& j) const;
 
 }; // nb_n1_mode_drx_parameters_t
 
@@ -1127,6 +1153,7 @@ public:
 
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
+  void        to_json(json_writer& j) const;
 
 }; // registration_result_5gs_t
 
@@ -1137,7 +1164,7 @@ class plmn_list_t
 public:
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
-
+  void        to_json(json_writer& j) const;
 }; // plmn_list_t
 
 // IE: 5GS tracking area identity list
@@ -1159,6 +1186,7 @@ public:
 
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
+  void        to_json(json_writer& j) const;
 
 }; // tracking_area_identity_list_5gs_t
 
@@ -1169,6 +1197,7 @@ class rejected_nssai_t
 public:
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
+  void        to_json(json_writer& j) const;
 
 }; // rejected_nssai_t
 
@@ -1179,6 +1208,7 @@ class network_feature_support_5gs_t
 public:
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
+  void        to_json(json_writer& j) const;
 
 }; // network_feature_support_5gs_t
 
@@ -1206,6 +1236,7 @@ public:
 
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
+  void        to_json(json_writer& j) const;
 
 }; // pdu_session_reactivation_result_t
 
@@ -1216,6 +1247,7 @@ class pdu_session_reactivation_result_error_cause_t
 public:
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
+  void        to_json(json_writer& j) const;
 
 }; // pdu_session_reactivation_result_error_cause_t
 
@@ -1226,6 +1258,7 @@ class ladn_information_t
 public:
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
+  void        to_json(json_writer& j) const;
 
 }; // ladn_information_t
 
@@ -1236,6 +1269,7 @@ class service_area_list_t
 public:
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
+  void        to_json(json_writer& j) const;
 
 }; // service_area_list_t
 
@@ -1248,6 +1282,7 @@ public:
 
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
+  void        to_json(json_writer& j) const;
 
 }; // gprs_timer_2_t
 
@@ -1258,6 +1293,7 @@ class emergency_number_list_t
 public:
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
+  void        to_json(json_writer& j) const;
 
 }; // emergency_number_list_t
 
@@ -1268,6 +1304,7 @@ class extended_emergency_number_list_t
 public:
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
+  void        to_json(json_writer& j) const;
 
 }; // extended_emergency_number_list_t
 
@@ -1278,6 +1315,7 @@ class sor_transparent_container_t
 public:
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
+  void        to_json(json_writer& j) const;
 
 }; // sor_transparent_container_t
 
@@ -1290,6 +1328,7 @@ public:
 
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
+  void        to_json(json_writer& j) const;
 
 }; // eap_message_t
 
@@ -1314,6 +1353,7 @@ public:
 
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
+  void        to_json(json_writer& j) const;
 
 }; // nssai_inclusion_mode_t
 
@@ -1324,6 +1364,7 @@ class operator_defined_access_category_definitions_t
 public:
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
+  void        to_json(json_writer& j) const;
 
 }; // operator_defined_access_category_definitions_t
 
@@ -1336,6 +1377,7 @@ public:
 
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
+  void        to_json(json_writer& j) const;
 
 }; // non_3_gpp_nw_provided_policies_t
 
@@ -1359,6 +1401,7 @@ public:
 
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
+  void        to_json(json_writer& j) const;
 
 }; // ue_radio_capability_id_deletion_indication_t
 
@@ -1369,6 +1412,7 @@ class ciphering_key_data_t
 public:
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
+  void        to_json(json_writer& j) const;
 
 }; // ciphering_key_data_t
 
@@ -1379,6 +1423,7 @@ class cag_information_list_t
 public:
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
+  void        to_json(json_writer& j) const;
 
 }; // cag_information_list_t
 
@@ -1392,6 +1437,7 @@ public:
 
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
+  void        to_json(json_writer& j) const;
 
 }; // truncated_5g_s_tmsi_configuration_t
 
@@ -1454,7 +1500,7 @@ public:
 
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
-
+  void        to_json(json_writer& j) const;
 }; // cause_5gmm_t
 
 // IE: De-registration type
@@ -1677,7 +1723,7 @@ public:
 
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
-
+  void        to_json(json_writer& j) const;
 }; // abba_t
 
 // IE: Authentication parameter RAND
@@ -1689,6 +1735,7 @@ public:
 
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
+  void        to_json(json_writer& j) const;
 
 }; // authentication_parameter_rand_t
 
@@ -1701,6 +1748,7 @@ public:
 
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
+  void        to_json(json_writer& j) const;
 
 }; // authentication_parameter_autn_t
 
@@ -1713,6 +1761,7 @@ public:
 
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
+  void        to_json(json_writer& j) const;
 
 }; // authentication_response_parameter_t
 
@@ -1725,6 +1774,7 @@ public:
 
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
+  void        to_json(json_writer& j) const;
 
 }; // authentication_failure_parameter_t
 
@@ -1752,6 +1802,7 @@ public:
 
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
+  void        to_json(json_writer& j) const;
 
 }; // identity_type_5gs_t
 
@@ -1798,6 +1849,7 @@ public:
 
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
+  void        to_json(json_writer& j) const;
 
 }; // security_algorithms_t
 
@@ -1820,6 +1872,7 @@ public:
 
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
+  void        to_json(json_writer& j) const;
 
 }; // imeisv_request_t
 
@@ -1866,6 +1919,7 @@ public:
 
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
+  void        to_json(json_writer& j) const;
 
 }; // eps_nas_security_algorithms_t
 
@@ -1879,6 +1933,7 @@ public:
 
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
+  void        to_json(json_writer& j) const;
 
 }; // additional_5g_security_information_t
 
@@ -1928,7 +1983,8 @@ public:
 
   SRSASN_CODE pack(asn1::bit_ref& bref);
   SRSASN_CODE unpack(asn1::cbit_ref& bref);
-
+  void        to_json(json_writer& j) const;
+  
 }; // s1_ue_security_capability_t
 
 // IE: Access type

@@ -7,6 +7,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <pthread.h>
+#include <mutex>
 
 #include "src/ue_packet_handler.h"
 #include "src/gnb_packet_handler.h"
@@ -29,10 +30,20 @@ struct sockaddr_in fake_UE_server_addr;
 struct sockaddr_in fake_gNB_server_addr;
 struct sockaddr_in fake_UE_addr, fake_gNB_addr;
 
+struct sockaddr_in backend_addr;
+
 int fake_UE_server_sock;
 int fake_gNB_server_sock;
 
+int backend_sock;
+
+int msg_count = 10;
+std::string packet2send;
+
+asn1::json_writer * json_buffer = new asn1::json_writer;
+
 void* worker(void *arg) {
+  static std::mutex m;
   printf("Thread Created!\n");
 
   int *fake_src_sock, *fake_dst_sock;
@@ -61,20 +72,54 @@ void* worker(void *arg) {
   while(1) {
     uint8_t buf[65535];
     socklen_t sn=sizeof(*fake_src_addr);
-    asn1::json_writer * packet_json_p = NULL;
+
+    int result;
+
     int n=recvfrom(*fake_src_sock,buf,sizeof(buf),0,(struct sockaddr *)fake_src_addr,&sn);
     //int n=recv(*fake_src_sock,buf,sizeof(buf),0);
+    m.lock();
     if(dir_v == FROM_FAKE_UE){  //Target gNB's packet is arrive here
-      packet_json_p = gNB::decode_packet(buf, n);
+      result = gNB::decode_packet(buf, n, *json_buffer);
     }else if(dir_v ==FROM_FAKE_gNB){  //Target UE's packet is arrive here
-      packet_json_p = UE::decode_packet(buf, n);
+      result = UE::decode_packet(buf, n, *json_buffer);
     }else{
       std::cerr << "Error: Undefined dir_v!"<< std::endl;
     }
 
-    std::cout << packet_json_p->to_string() << std::endl;
-    delete packet_json_p;
+    // //std::cout << packet_json_p->to_string() << std::endl;
+    // m.lock();
+    // if(msg_count > 0)
+    // {
+    //   std::cout << msg_count << std::endl;
+    //   // if(msg_count != 6)
+    // //     packet2send += ',';
+      
+    //   std::string str = packet_json_p->to_string();
+    //   std::cout << str <<std::endl;
 
+    //   packet2send += str;
+
+    //   msg_count -= 1;
+
+    //   if(msg_count == 0)
+    //   {
+    msg_count -= 1;
+    //     // packet2send += ']';
+    //     // //std::cout << packet2send << std::endl;
+    //     // //std::cout << "hello?" << std::endl;
+        
+    //     // sendto(backend_sock, packet2send.c_str(), packet2send.length() ,0,(struct sockaddr *)&backend_addr,sizeof(backend_addr));
+    //   }
+    // }  
+    if(msg_count == 0)
+    {
+      json_buffer->end_array();
+      std::string str = json_buffer->to_string();
+      std::cout << str << std::endl;
+    }
+
+    m.unlock();
+    
     if(n>0 && fake_dst_addr->sin_port>0) {
       sendto(*fake_dst_sock,buf,n,0,(struct sockaddr *)fake_dst_addr,sizeof(*fake_dst_addr));
 
@@ -92,6 +137,7 @@ int main(int argc, char *argv[]) {
 
   fake_UE_server_sock=socket(AF_INET,SOCK_DGRAM,IPPROTO_IP);
   fake_gNB_server_sock=socket(AF_INET,SOCK_DGRAM,IPPROTO_IP);
+  backend_sock=socket(AF_INET,SOCK_DGRAM,IPPROTO_IP);
 
   fake_UE_addr.sin_family=AF_INET;
   fake_UE_addr.sin_addr.s_addr=inet_addr(LOOPBACK_IP);
@@ -104,6 +150,10 @@ int main(int argc, char *argv[]) {
   fake_UE_server_addr.sin_family=AF_INET;
   fake_UE_server_addr.sin_addr.s_addr=inet_addr(LOOPBACK_IP);
   fake_UE_server_addr.sin_port=htons(FAKE_UE_SERVER_PORT);
+
+  backend_addr.sin_family=AF_INET;
+  backend_addr.sin_addr.s_addr = inet_addr("127.0.0.4");
+  backend_addr.sin_port = htons(8000);
 
   if(bind(fake_UE_server_sock,(struct sockaddr *)&fake_UE_server_addr,sizeof(fake_UE_server_addr))==-1) {
 	  printf("Bind fake_UE_server_sock Error!\n");
@@ -121,6 +171,7 @@ int main(int argc, char *argv[]) {
   pthread_t UE2gNB_proc, gNB2UE_proc;
   enum RELAY_DIR argv1 = FROM_FAKE_UE;
   enum RELAY_DIR argv2 = FROM_FAKE_gNB;
+  json_buffer->start_array();
   pthread_create(&UE2gNB_proc, NULL, worker, (void*)(&argv1));
   pthread_create(&gNB2UE_proc, NULL, worker, (void*)(&argv2));
 

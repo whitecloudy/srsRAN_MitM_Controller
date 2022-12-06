@@ -1513,7 +1513,8 @@ void json_writer::write_int(int64_t value)
 void json_writer::write_bool(const std::string& fieldname, bool value)
 {
   write_fieldname(fieldname);
-  fmt::format_to(buffer, "{}", value ? "true" : "false");
+  //fmt::format_to(buffer, "{}", value ? "true" : "false");
+  fmt::format_to(buffer, "{}", value ? "1" : "0");
   sep = COMMA;
 }
 void json_writer::write_bool(bool value)
