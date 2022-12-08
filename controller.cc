@@ -35,7 +35,7 @@ struct sockaddr_in scenario_handler_addr;
 int fake_UE_server_sock;
 int fake_gNB_server_sock;
 
-int backend_sock;
+int scenario_handler_sock;
 
 int msg_count = 10;
 std::string packet2send;
@@ -89,13 +89,13 @@ void* worker(void *arg) {
     }
     json_buffer->end_array();
 
-    std::string to_backend = json_buffer->to_string();
+    std::string to_scenario_handler = json_buffer->to_string();
 
-    sendto(backend_sock, to_backend.c_str(), to_backend.length(),0, (struct sockaddr *)&scenario_handler_addr, sizeof(scenario_handler_addr));
+    sendto(scenario_handler_sock, to_scenario_handler.c_str(), to_scenario_handler.length(),0, (struct sockaddr *)&scenario_handler_addr, sizeof(scenario_handler_addr));
 
     uint8_t buf2[65535];
     socklen_t sn2= sizeof(scenario_handler_addr);
-    int n2 = recvfrom(backend_sock, buf2, sizeof(buf2), 0, (struct sockaddr *)&scenario_handler_addr, &sn2);
+    int n2 = recvfrom(scenario_handler_sock, buf2, sizeof(buf2), 0, (struct sockaddr *)&scenario_handler_addr, &sn2);
 
     if(buf2[0] == 0)
     {
@@ -125,7 +125,7 @@ int main(int argc, char *argv[]) {
 
   fake_UE_server_sock=socket(AF_INET,SOCK_DGRAM,IPPROTO_IP);
   fake_gNB_server_sock=socket(AF_INET,SOCK_DGRAM,IPPROTO_IP);
-  backend_sock=socket(AF_INET,SOCK_DGRAM,IPPROTO_IP);
+  scenario_handler_sock=socket(AF_INET,SOCK_DGRAM,IPPROTO_IP);
 
   fake_UE_addr.sin_family=AF_INET;
   fake_UE_addr.sin_addr.s_addr=inet_addr(LOOPBACK_IP);
