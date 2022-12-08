@@ -11,6 +11,7 @@
 
 #include "src/ue_packet_handler.h"
 #include "src/gnb_packet_handler.h"
+#include "src/json_packet_maker.h"
 
 
 #define LOOPBACK_IP ("127.123.123.24")
@@ -90,6 +91,24 @@ void* worker(void *arg) {
     json_buffer->end_array();
 
     std::string to_backend = json_buffer->to_string();
+    //std::cout << to_backend << std::endl;
+      
+      /*
+      if(n>0 && fake_dst_addr->sin_port>0) {
+      sendto(*fake_dst_sock,buf,n,0,(struct sockaddr *)fake_dst_addr,sizeof(*fake_dst_addr));
+
+      printf("fake_src_sock: %d, fake_dst_sock: %d, fake_dst_addr port: %d, fake_src_addr port: %d, size: %d\n", *fake_src_sock, *fake_dst_sock, fake_dst_addr->sin_port, fake_src_addr->sin_port, n);
+      }
+
+      uint8_t* test;
+      if (n == 11) {
+	for (int i=0; i<n; i++) {
+          std::cout << std::to_string(buf[i]) << " ";
+	}
+	std::cout << "\n";
+        test = jsonPacketMaker::json_to_packet(to_backend, buf, n);
+      }
+      */
 
     sendto(backend_sock, to_backend.c_str(), to_backend.length(),0, (struct sockaddr *)&scenario_handler_addr, sizeof(scenario_handler_addr));
 
@@ -105,9 +124,24 @@ void* worker(void *arg) {
 
       printf("fake_src_sock: %d, fake_dst_sock: %d, fake_dst_addr port: %d, fake_src_addr port: %d, size: %d\n", *fake_src_sock, *fake_dst_sock, fake_dst_addr->sin_port, fake_src_addr->sin_port, n);
       }
-    }else if(buf2[1] == 1)
+    }else if(buf2[0] == 1)
     {
       //Handle Spoofing message here
+      char json_char[65535];
+      uint8_t* spoofed_msg;
+
+      for (int i=0; i<n2-1; i++) {
+        json_char[i] = (char)buf2[i+1];
+      }
+      std::string json_string = json_char;
+      
+      spoofed_msg = jsonPacketMaker::json_to_packet(json_string, buf, n);
+
+      if(n>0 && fake_dst_addr->sin_port>0) {
+      sendto(*fake_dst_sock,spoofed_msg,n2-1,0,(struct sockaddr *)fake_dst_addr,sizeof(*fake_dst_addr));
+
+      printf("fake_src_sock: %d, fake_dst_sock: %d, fake_dst_addr port: %d, fake_src_addr port: %d, size: %d\n", *fake_src_sock, *fake_dst_sock, fake_dst_addr->sin_port, fake_src_addr->sin_port, n);
+      }
     }
     
     delete json_buffer;

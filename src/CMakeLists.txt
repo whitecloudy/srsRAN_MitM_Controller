@@ -2,7 +2,8 @@
 
 set (SOURCES    ue_packet_handler.cc 
                 gnb_packet_handler.cc
-                nas_packet_handler.cc)
+                nas_packet_handler.cc
+		json_packet_maker.cc)
 
 add_library(controller_src STATIC ${SOURCES})
 
