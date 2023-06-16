@@ -27,12 +27,17 @@ namespace jsonPacketMaker {
   void handle_rrc_reconfiguration_complete(uint8_t* original_msg, int rrcTransactionIdentifier, int size);
   void handle_rrc_reject(uint8_t* original_msg, uint8_t waitTime, int size);
   void handle_rrc_release(uint8_t* original_msg, int rrcTransactionIdentifier,int size);
+  //void handle_rrc_resume(uint8_t* original_msg, int );
   
   // NAS
   std::string handle_nas_outer_header(const rapidjson::Value& obj);
   void handle_nas_security_mode_command(uint8_t* original_msg, int rrcTransactionIdentifier, std::string dedicatedNas, int size, const rapidjson::Value& obj);
+  void handle_nas_security_mode_reject(uint8_t* original_msg, int size);
   void handle_nas_authentication_request(uint8_t* original_msg, int rrcTransactionIdentifier, std::string dedicatedNas, int size, const rapidjson::Value& obj);
   void handle_nas_authentication_response(uint8_t* original_msg, std::string dedicatedNas, int size, const rapidjson::Value& obj);
+  void handle_nas_authentication_reject(uint8_t* original_msg, int size);
+  void handle_nas_authentication_failure(uint8_t* original_msg, int size);
+  void handle_nas_registration_reject(uint8_t* original_msg, int size);
 
   // Util
   int string_to_number(const rapidjson::Value& value);

@@ -51,8 +51,12 @@ uint8_t* jsonPacketMaker::json_to_packet(std::string buf, uint8_t* original_msg,
   int isSetupComplete = 0;
   int isRrcReconfiguration = 0;
   int isNasSecurityModeCommand = 0;
+  int isNasSecurityModeReject = 0;
   int isNasAuthenticationRequest = 0;
   int isNasAuthenticationResponse = 0;
+  int isNasAuthenticationReject = 0;
+  int isNasAuthenticationFailure = 0;
+  int isNasRegistrationReject = 0;
   int srb_identity = 0;
 
   std::string ue_id_type = "";
@@ -68,8 +72,12 @@ uint8_t* jsonPacketMaker::json_to_packet(std::string buf, uint8_t* original_msg,
   const char* dlInfoTransfer = "dlInformationTransfer";
   const char* ulInfoTransfer = "ulInformationTransfer";
   const char* nasSecurityModeCommand = "Security mode command";
+  const char* nasSecurityModeReject = "Security mode reject";
   const char* nasAuthenticationRequest = "Authentication request";
   const char* nasAuthenticationResponse = "Authentication response";
+  const char* nasAuthenticationReject = "Authentication reject";
+  const char* nasAuthenticationFailure = "Authentication failure";
+  const char* nasRegistrationReject = "Registration reject";
 
   const char* criticalExtension = "criticalExtensions";
   const char* rat_type = "rat-Type";
@@ -88,7 +96,7 @@ uint8_t* jsonPacketMaker::json_to_packet(std::string buf, uint8_t* original_msg,
 
   for (Value::ConstValueIterator itrr = d.Begin(); itrr != d.End(); ++itrr) {
     const Value& o = *itrr;
-    if (isSetupComplete == 1 || isNasSecurityModeCommand == 1 || isNasAuthenticationRequest == 1 || isNasAuthenticationResponse == 1 || isRrcReconfiguration == 1) {
+    if (isSetupComplete == 1 || isNasSecurityModeCommand == 1 || isNasAuthenticationRequest == 1 || isNasAuthenticationResponse == 1 || isRrcReconfiguration == 1 || isNasSecurityModeReject == 1 || isNasAuthenticationReject == 1 || isNasAuthenticationFailure == 1 || isNasRegistrationReject == 1) {
       break;
     }
     std::cout << "I'm Here" << std::endl;
@@ -315,15 +323,37 @@ uint8_t* jsonPacketMaker::json_to_packet(std::string buf, uint8_t* original_msg,
 		       isNasAuthenticationRequest = 1;
 		     }
 
+		     else if (strcmp(nasAuthenticationResponse, nas_message_type.c_str()) == 0) { // If NAS Authentication Response
+		       isNasAuthenticationResponse = 1;
+
+		       handle_nas_authentication_response(original_msg, dedicatedNAS, size, obj_);
+		     }
+
+		     else if (strcmp(nasAuthenticationReject, nas_message_type.c_str()) == 0) { // If NAS Authentication Reject
+		       isNasAuthenticationReject = 1;
+
+		       handle_nas_authentication_reject(original_msg, size);
+		     }
+
+		     else if (strcmp(nasAuthenticationFailure, nas_message_type.c_str()) == 0) { // If NAS Authentication Failure
+		       isNasAuthenticationFailure = 1;
+
+		       handle_nas_authentication_failure(original_msg, size);
+		     }
+
 		     else if (strcmp(nasSecurityModeCommand, nas_message_type.c_str()) == 0) { // If NAS Security Mode Command
 		       handle_nas_security_mode_command(original_msg, rrcTransactionIdentifier, dedicatedNAS, size, obj_);
 		       isNasSecurityModeCommand = 1;
 		     }
 
-		     else if (strcmp(nasAuthenticationResponse, nas_message_type.c_str()) == 0) { // If NAS Authentication Response
-		       isNasAuthenticationResponse = 1;
+		     else if (strcmp(nasSecurityModeReject, nas_message_type.c_str()) == 0) { // If NAS Security Mode Reject
+		       handle_nas_security_mode_reject(original_msg, size);
+		       isNasSecurityModeReject = 1;
+		     }
 
-		       handle_nas_authentication_response(original_msg, dedicatedNAS, size, obj_);
+		     else if (strcmp(nasRegistrationReject, nas_message_type.c_str()) == 0) { // If NAS Registration Reject
+		       handle_nas_registration_reject(original_msg, size);
+		       isNasRegistrationReject = 1;
 		     }
 		   }
 
@@ -808,11 +838,11 @@ void jsonPacketMaker::handle_rrc_reconfiguration(uint8_t* original_msg, int rrcT
 
   // Radio Bearer Config
   int rbcfg_exist = 0;
-  int srb_identity = 0;
+  int srb_identity = -1;
   int pdu_session = 0;
   int default_drb = 0;
   int mappedQoS = 0;
-  int drb_identity = 0;
+  int drb_identity = -1;
 
   std::string sdap_headerDL = "";
   std::string sdap_headerUL = "";
@@ -1002,23 +1032,28 @@ void jsonPacketMaker::handle_rrc_reconfiguration(uint8_t* original_msg, int rrcT
   if (rbcfg_exist == 1) {
     ies.radio_bearer_cfg_present = true;
 
-    ies.radio_bearer_cfg.srb_to_add_mod_list.resize(1);
-    ies.radio_bearer_cfg.srb_to_add_mod_list[0].srb_id = srb_identity;
+    if (srb_identity != -1) {
+      ies.radio_bearer_cfg.srb_to_add_mod_list.resize(1);
+      ies.radio_bearer_cfg.srb_to_add_mod_list[0].srb_id = srb_identity;
+    }
 
-    ies.radio_bearer_cfg.drb_to_add_mod_list.resize(1);
-    ies.radio_bearer_cfg.drb_to_add_mod_list[0].drb_id = drb_identity;
+    if (drb_identity != -1) {
+      ies.radio_bearer_cfg.drb_to_add_mod_list.resize(1);
+      ies.radio_bearer_cfg.drb_to_add_mod_list[0].drb_id = drb_identity;
+    }
 
     /*
     if (strcmp(sdap_headerDL.c_str(), "") != 0) {
       ies.radio_bearer_cfg.drb_to_add_mod_list[0].cn_assoc_present = true;
       ies.radio_bearer_cfg.drb_to_add_mod_list[0].cn_assoc.sdap_cfg().pdu_session = pdu_session;
     }
+    */
 
     if (strcmp(discard_timer.c_str(), "") != 0) {
       ies.radio_bearer_cfg.drb_to_add_mod_list[0].pdcp_cfg_present = true;
-      ies.radio_bearer_cfg.drb_to_add_mod_list[0].pdcp_cfg.drb_present = true;
+      //ies.radio_bearer_cfg.drb_to_add_mod_list[0].pdcp_cfg.drb_present = true;
+      //ies.radio_bearer_cfg.drb_to_add_mod_list[0].pdcp_cfg.drb.discard_timer_present = true;
     }
-    */
   }
 
   if (strcmp(masterCellGroup.c_str(), "") != 0) {
@@ -1119,7 +1154,7 @@ void jsonPacketMaker::handle_rrc_reject(uint8_t* original_msg, uint8_t waitTime,
     std::cout << "pdu creation failed" << std::endl;
   }
 
-  asn1::json_writer *json_buf = new asn1::json_writer();
+  //asn1::json_writer *json_buf = new asn1::json_writer();
   //dl_ccch_msg.to_json(*json_buf);
   //std::cout << json_buf->to_string() << std::endl;
 
@@ -2035,6 +2070,53 @@ void jsonPacketMaker::handle_rrc_setup_complete(uint8_t* original_msg, int rrcTr
   
 }
 
+void jsonPacketMaker::handle_nas_registration_reject(uint8_t* original_msg, int size) {
+  struct msg_struct {
+    uint32_t channel;
+    uint8_t msg[32768];
+  } msg_buffer;
+
+  asn1::rrc_nr::dl_dcch_msg_s dl_dcch_msg;
+  asn1::rrc_nr::dl_info_transfer_ies_s* dl_info_transfer = &dl_dcch_msg.msg.set_c1().set_dl_info_transfer().crit_exts.set_dl_info_transfer();
+
+  srsran::unique_byte_buffer_t pdu = srsran::make_byte_buffer();
+  if (pdu == nullptr) {
+    std::cout << "pdu creation failed" << std::endl;
+  }
+
+  srsran::nas_5g::nas_5gs_msg nas_msg;
+
+  nas_msg.hdr.extended_protocol_discriminator = srsran::nas_5g::nas_5gs_hdr::extended_protocol_discriminator_opts::extended_protocol_discriminator_5gmm;
+  nas_msg.hdr.security_header_type = srsran::nas_5g::nas_5gs_hdr::security_header_type_opts::plain_5gs_nas_message;
+  nas_msg.hdr.message_type = srsran::nas_5g::msg_opts::options::registration_reject;
+
+  srsran::nas_5g::registration_reject_t& regi_rej = nas_msg.set_registration_reject();
+  nas_msg.pack(pdu);
+
+  dl_info_transfer->ded_nas_msg.resize(pdu->N_bytes);
+  memcpy(dl_info_transfer->ded_nas_msg.data(), pdu->msg, pdu->N_bytes);
+  
+  srsran::unique_byte_buffer_t pdu2 = srsran::make_byte_buffer();
+  if (pdu2 == nullptr) {
+    std::cout << "pdu2 creation failed" << std::endl;
+  }
+
+  asn1::bit_ref bref(pdu2->msg, pdu2->get_tailroom());
+  dl_dcch_msg.pack(bref);
+  bref.align_bytes_zero();
+  pdu2->N_bytes = (uint32_t)bref.distance_bytes(pdu2->msg);
+  pdu2->set_timestamp();
+
+  memcpy(&msg_buffer, original_msg, size);
+  memcpy(msg_buffer.msg, pdu2->msg, pdu2->N_bytes);
+  memcpy(msg_buffer_bytes, &msg_buffer, size);
+
+  for (int i=0; i<size; i++) {
+    std::cout << std::to_string(msg_buffer_bytes[i]) << " ";
+  }
+  std::cout << "\n";
+}
+
 void jsonPacketMaker::handle_nas_authentication_request(uint8_t* original_msg, int rrcTransactionIdentifier, std::string dedicatedNAS, int size, const rapidjson::Value& obj) {
   struct msg_struct {
     uint32_t channel;
@@ -2336,6 +2418,8 @@ void jsonPacketMaker::handle_nas_authentication_request(uint8_t* original_msg, i
     std::cout << std::to_string(msg_buffer_bytes[i]) << " ";
   }
   std::cout << "\n";
+
+  // Testing...
 }
 
 void jsonPacketMaker::handle_nas_authentication_response(uint8_t* original_msg, std::string dedicatedNas, int size, const rapidjson::Value& obj) {
@@ -2563,6 +2647,57 @@ void jsonPacketMaker::handle_nas_authentication_response(uint8_t* original_msg, 
     uint8_t msg[32768];
   } msg_buffer;
 
+  asn1::rrc_nr::dl_dcch_msg_s dl_dcch_msg;
+  asn1::rrc_nr::dl_info_transfer_ies_s* dl_info_transfer = &dl_dcch_msg.msg.set_c1().set_dl_info_transfer().crit_exts.set_dl_info_transfer();
+
+  srsran::unique_byte_buffer_t pdu = srsran::make_byte_buffer();
+  if (pdu == nullptr) {
+    std::cout << "pdu creation failed" << std::endl;
+  }
+
+  srsran::nas_5g::nas_5gs_msg nas_msg;
+
+  nas_msg.hdr.extended_protocol_discriminator = srsran::nas_5g::nas_5gs_hdr::extended_protocol_discriminator_opts::extended_protocol_discriminator_5gmm;
+  nas_msg.hdr.security_header_type = srsran::nas_5g::nas_5gs_hdr::security_header_type_opts::plain_5gs_nas_message;
+  nas_msg.hdr.message_type = srsran::nas_5g::msg_opts::options::registration_reject;
+
+  srsran::nas_5g::registration_reject_t& regi_rej = nas_msg.set_registration_reject();
+  nas_msg.pack(pdu);
+
+  dl_info_transfer->ded_nas_msg.resize(pdu->N_bytes);
+  memcpy(dl_info_transfer->ded_nas_msg.data(), pdu->msg, pdu->N_bytes);
+  
+  srsran::unique_byte_buffer_t pdu2 = srsran::make_byte_buffer();
+  if (pdu2 == nullptr) {
+    std::cout << "pdu2 creation failed" << std::endl;
+  }
+
+  asn1::bit_ref bref(pdu2->msg, pdu2->get_tailroom());
+  dl_dcch_msg.pack(bref);
+  bref.align_bytes_zero();
+  pdu2->N_bytes = (uint32_t)bref.distance_bytes(pdu2->msg);
+  pdu2->set_timestamp();
+
+  memcpy(&msg_buffer, original_msg, size);
+  memcpy(msg_buffer.msg, pdu2->msg, pdu2->N_bytes);
+  memcpy(msg_buffer_bytes, &msg_buffer, size);
+
+  for (int i=0; i<size; i++) {
+    std::cout << std::to_string(msg_buffer_bytes[i]) << " ";
+  }
+  std::cout << "\n";
+}
+
+void jsonPacketMaker::handle_nas_authentication_reject(uint8_t* original_msg, int size) {
+  struct msg_struct {
+    uint32_t channel;
+    uint8_t msg[32768];
+  } msg_buffer;
+
+  std::cout << "\n";
+  std::cout << "Spoofing NAS Authentication Reject" << std::endl;
+  std::cout << "\n";
+
   asn1::rrc_nr::ul_dcch_msg_s ul_dcch_msg;
   asn1::rrc_nr::ul_info_transfer_ies_s* ul_info_transfer = &ul_dcch_msg.msg.set_c1().set_ul_info_transfer().crit_exts.set_ul_info_transfer();
 
@@ -2572,19 +2707,17 @@ void jsonPacketMaker::handle_nas_authentication_response(uint8_t* original_msg, 
   }
 
   srsran::nas_5g::nas_5gs_msg nas_msg;
+
   nas_msg.hdr.extended_protocol_discriminator = srsran::nas_5g::nas_5gs_hdr::extended_protocol_discriminator_opts::extended_protocol_discriminator_5gmm;
   nas_msg.hdr.security_header_type = srsran::nas_5g::nas_5gs_hdr::security_header_type_opts::plain_5gs_nas_message;
-  nas_msg.hdr.message_type = srsran::nas_5g::msg_opts::options::security_mode_reject;
+  nas_msg.hdr.message_type = srsran::nas_5g::msg_opts::options::authentication_reject;
 
-  srsran::nas_5g::security_mode_reject_t& security_mode_reject = nas_msg.set_security_mode_reject();
-  security_mode_reject.cause_5gmm.cause_5gmm = (srsran::nas_5g::cause_5gmm_t::cause_5gmm_type_::options)0b00011000;
-
+  srsran::nas_5g::authentication_reject_t& auth_rej = nas_msg.set_authentication_reject();
   nas_msg.pack(pdu);
 
   ul_info_transfer->ded_nas_msg.resize(pdu->N_bytes);
   memcpy(ul_info_transfer->ded_nas_msg.data(), pdu->msg, pdu->N_bytes);
-  ul_info_transfer->ded_nas_msg[3] = 23;
-
+  
   srsran::unique_byte_buffer_t pdu2 = srsran::make_byte_buffer();
   if (pdu2 == nullptr) {
     std::cout << "pdu2 creation failed" << std::endl;
@@ -2604,14 +2737,57 @@ void jsonPacketMaker::handle_nas_authentication_response(uint8_t* original_msg, 
     std::cout << std::to_string(msg_buffer_bytes[i]) << " ";
   }
   std::cout << "\n";
+}
 
-  asn1::json_writer *json_buf = new asn1::json_writer();
-  json_buf->start_array();
-  int n=0;
-  int result = gNB::decode_packet(msg_buffer_bytes, n, *json_buf);
-  json_buf->end_array();
-  //ul_dcch_msg.to_json(*json_buf);
-  std::cout << json_buf->to_string() << std::endl;
+void jsonPacketMaker::handle_nas_authentication_failure(uint8_t* original_msg, int size) {
+  struct msg_struct {
+    uint32_t channel;
+    uint8_t msg[32768];
+  } msg_buffer;
+
+  std::cout << "\n";
+  std::cout << "Spoofing NAS Authentication Failure" << std::endl;
+  std::cout << "\n";
+
+  asn1::rrc_nr::ul_dcch_msg_s ul_dcch_msg;
+  asn1::rrc_nr::ul_info_transfer_ies_s* ul_info_transfer = &ul_dcch_msg.msg.set_c1().set_ul_info_transfer().crit_exts.set_ul_info_transfer();
+
+  srsran::unique_byte_buffer_t pdu = srsran::make_byte_buffer();
+  if (pdu == nullptr) {
+    std::cout << "pdu creation failed" << std::endl;
+  }
+
+  srsran::nas_5g::nas_5gs_msg nas_msg;
+
+  nas_msg.hdr.extended_protocol_discriminator = srsran::nas_5g::nas_5gs_hdr::extended_protocol_discriminator_opts::extended_protocol_discriminator_5gmm;
+  nas_msg.hdr.security_header_type = srsran::nas_5g::nas_5gs_hdr::security_header_type_opts::plain_5gs_nas_message;
+  nas_msg.hdr.message_type = srsran::nas_5g::msg_opts::options::authentication_failure;
+
+  srsran::nas_5g::authentication_failure_t& auth_fail = nas_msg.set_authentication_failure();
+  nas_msg.pack(pdu);
+
+  ul_info_transfer->ded_nas_msg.resize(pdu->N_bytes);
+  memcpy(ul_info_transfer->ded_nas_msg.data(), pdu->msg, pdu->N_bytes);
+  
+  srsran::unique_byte_buffer_t pdu2 = srsran::make_byte_buffer();
+  if (pdu2 == nullptr) {
+    std::cout << "pdu2 creation failed" << std::endl;
+  }
+
+  asn1::bit_ref bref(pdu2->msg, pdu2->get_tailroom());
+  ul_dcch_msg.pack(bref);
+  bref.align_bytes_zero();
+  pdu2->N_bytes = (uint32_t)bref.distance_bytes(pdu2->msg);
+  pdu2->set_timestamp();
+
+  memcpy(&msg_buffer, original_msg, size);
+  memcpy(msg_buffer.msg, pdu2->msg, pdu2->N_bytes);
+  memcpy(msg_buffer_bytes, &msg_buffer, size);
+
+  for (int i=0; i<size; i++) {
+    std::cout << std::to_string(msg_buffer_bytes[i]) << " ";
+  }
+  std::cout << "\n";
 }
 
 void jsonPacketMaker::handle_nas_security_mode_command(uint8_t* original_msg, int rrcTransactionIdentifier, std::string dedicatedNAS, int size, const rapidjson::Value& obj) {
@@ -3116,6 +3292,65 @@ void jsonPacketMaker::handle_nas_security_mode_command(uint8_t* original_msg, in
   int result = gNB::decode_packet(msg_buffer_bytes, size, *json_buffer);
   json_buffer->end_array();
   std::cout << json_buffer->to_string() << std::endl;
+}
+
+void jsonPacketMaker::handle_nas_security_mode_reject(uint8_t* original_msg, int size) {
+  struct msg_struct {
+    uint32_t channel;
+    uint8_t msg[32768];
+  } msg_buffer;
+
+  asn1::rrc_nr::ul_dcch_msg_s ul_dcch_msg;
+  asn1::rrc_nr::ul_info_transfer_ies_s* ul_info_transfer = &ul_dcch_msg.msg.set_c1().set_ul_info_transfer().crit_exts.set_ul_info_transfer();
+
+  srsran::unique_byte_buffer_t pdu = srsran::make_byte_buffer();
+  if (pdu == nullptr) {
+    std::cout << "pdu creation failed" << std::endl;
+  }
+
+  srsran::nas_5g::nas_5gs_msg nas_msg;
+  nas_msg.hdr.extended_protocol_discriminator = srsran::nas_5g::nas_5gs_hdr::extended_protocol_discriminator_opts::extended_protocol_discriminator_5gmm;
+  nas_msg.hdr.security_header_type = srsran::nas_5g::nas_5gs_hdr::security_header_type_opts::plain_5gs_nas_message;
+  nas_msg.hdr.message_type = srsran::nas_5g::msg_opts::options::security_mode_reject;
+
+  srsran::nas_5g::security_mode_reject_t& security_mode_reject = nas_msg.set_security_mode_reject();
+  security_mode_reject.cause_5gmm.cause_5gmm = (srsran::nas_5g::cause_5gmm_t::cause_5gmm_type_::options)0b00011000;
+
+  nas_msg.pack(pdu);
+
+  ul_info_transfer->ded_nas_msg.resize(pdu->N_bytes);
+  memcpy(ul_info_transfer->ded_nas_msg.data(), pdu->msg, pdu->N_bytes);
+  ul_info_transfer->ded_nas_msg[3] = 23;
+
+  srsran::unique_byte_buffer_t pdu2 = srsran::make_byte_buffer();
+  if (pdu2 == nullptr) {
+    std::cout << "pdu2 creation failed" << std::endl;
+  }
+
+  asn1::bit_ref bref(pdu2->msg, pdu2->get_tailroom());
+  ul_dcch_msg.pack(bref);
+  bref.align_bytes_zero();
+  pdu2->N_bytes = (uint32_t)bref.distance_bytes(pdu2->msg);
+  pdu2->set_timestamp();
+
+  memcpy(&msg_buffer, original_msg, size);
+  memcpy(msg_buffer.msg, pdu2->msg, pdu2->N_bytes);
+  memcpy(msg_buffer_bytes, &msg_buffer, size);
+
+  for (int i=0; i<size; i++) {
+    std::cout << std::to_string(msg_buffer_bytes[i]) << " ";
+  }
+  std::cout << "\n";
+
+  /*
+  asn1::json_writer *json_buf = new asn1::json_writer();
+  json_buf->start_array();
+  int n=0;
+  int result = gNB::decode_packet(msg_buffer_bytes, n, *json_buf);
+  json_buf->end_array();
+  //ul_dcch_msg.to_json(*json_buf);
+  std::cout << json_buf->to_string() << std::endl;
+  */
 }
 
 std::string jsonPacketMaker::handle_nas_outer_header(const rapidjson::Value& obj) {
