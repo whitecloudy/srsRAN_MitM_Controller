@@ -28,8 +28,8 @@ uint8_t* jsonPacketMaker::json_to_packet(std::string buf, uint8_t* original_msg,
 
   // RRC Messages
   const char* rrcSecurityModeComplete = "securityModeComplete";
-
   const char* rrcSecurityModeCommand = "securityModeCommand";
+  const char* rrcSecurityModeFailure = "securityModeFailure";
   const char* securityConfigSMC = "securityConfigSMC";
   const char* lateNonCriticalExtension = "lateNonCriticalExtension";
   const char* nonCriticalExtension = "nonCriticalExtension";
@@ -44,10 +44,15 @@ uint8_t* jsonPacketMaker::json_to_packet(std::string buf, uint8_t* original_msg,
   const char* rrcSetupRequest = "rrcSetupRequest";
   const char* rrcSetupComplete = "rrcSetupComplete";
   const char* rrcSetup = "rrcSetup";
+  const char* rrcReconfiguration = "rrcReconfiguration";
+  const char* rrcReconfigurationComplete = "rrcReconfigurationComplete";
+  const char* rrcRelease = "rrcRelease";
 
   int isSetupComplete = 0;
+  int isRrcReconfiguration = 0;
   int isNasSecurityModeCommand = 0;
   int isNasAuthenticationRequest = 0;
+  int isNasAuthenticationResponse = 0;
   int srb_identity = 0;
 
   std::string ue_id_type = "";
@@ -61,6 +66,10 @@ uint8_t* jsonPacketMaker::json_to_packet(std::string buf, uint8_t* original_msg,
 
   // NAS
   const char* dlInfoTransfer = "dlInformationTransfer";
+  const char* ulInfoTransfer = "ulInformationTransfer";
+  const char* nasSecurityModeCommand = "Security mode command";
+  const char* nasAuthenticationRequest = "Authentication request";
+  const char* nasAuthenticationResponse = "Authentication response";
 
   const char* criticalExtension = "criticalExtensions";
   const char* rat_type = "rat-Type";
@@ -79,7 +88,7 @@ uint8_t* jsonPacketMaker::json_to_packet(std::string buf, uint8_t* original_msg,
 
   for (Value::ConstValueIterator itrr = d.Begin(); itrr != d.End(); ++itrr) {
     const Value& o = *itrr;
-    if (isSetupComplete == 1 || isNasSecurityModeCommand == 1 || isNasAuthenticationRequest == 1) {
+    if (isSetupComplete == 1 || isNasSecurityModeCommand == 1 || isNasAuthenticationRequest == 1 || isNasAuthenticationResponse == 1 || isRrcReconfiguration == 1) {
       break;
     }
     std::cout << "I'm Here" << std::endl;
@@ -154,12 +163,22 @@ uint8_t* jsonPacketMaker::json_to_packet(std::string buf, uint8_t* original_msg,
 	           std::cout << content->name.GetString() << ": ";
 
 	           if (strcmp(rrcSecurityModeComplete, content->name.GetString()) == 0) { // If RRC Security Mode Complete
-                     std::cout << buf << std::endl;
 		     handle_rrc_security_mode_complete(original_msg, rrcTransactionIdentifier, size);
-		  }
+		   }
+
+		   else if (strcmp(rrcSecurityModeFailure, content->name.GetString()) == 0) { // If RRC Security Mode Failure
+                     handle_rrc_security_mode_failure(original_msg, rrcTransactionIdentifier, size);
+		   }
+
+		   else if (strcmp(rrcReconfigurationComplete, content->name.GetString()) == 0) { // If RRC Reconfiguration Complete
+                     handle_rrc_reconfiguration_complete(original_msg, rrcTransactionIdentifier, size);
+		   }
+
+		   else if (strcmp(rrcRelease, content->name.GetString()) == 0) { // If RRC Release
+                     handle_rrc_release(original_msg, rrcTransactionIdentifier, size);
+		   }
 
 		   else if (strcmp(rrcSecurityModeCommand, content->name.GetString()) == 0) { // If RRC Security Mode Command
-		     std::cout << buf << std::endl;
 		     const Value& obj7 = content->value;
 
 		     for(Value::ConstMemberIterator smc = obj7.MemberBegin(); smc != obj7.MemberEnd(); ++smc) {
@@ -241,7 +260,6 @@ uint8_t* jsonPacketMaker::json_to_packet(std::string buf, uint8_t* original_msg,
                              ratType = req->value.GetString();
 			   }
 			 }
-
 		       }
 		     }
 		   }
@@ -271,6 +289,45 @@ uint8_t* jsonPacketMaker::json_to_packet(std::string buf, uint8_t* original_msg,
 		     }
 		   }
 
+                   else if (strcmp(rrcReconfiguration, content->name.GetString()) == 0) { // If RRC Reconfiguration
+		     const Value& obj_ = content->value;
+		     ++itrr;
+		     const Value& obj__ = *itrr;
+		     handle_rrc_reconfiguration(original_msg, rrcTransactionIdentifier, size, obj_, obj__);
+		     isRrcReconfiguration = 1;
+		   }
+
+		   else if(strcmp(dlInfoTransfer, content->name.GetString()) == 0 || strcmp(ulInfoTransfer, content->name.GetString()) == 0) {
+                     const Value& obj7 = content->value;
+
+		     for(Value::ConstMemberIterator dedNas = obj7.MemberBegin(); dedNas != obj7.MemberEnd(); ++dedNas) {
+                       std::cout << dedNas->name.GetString() << ": ";
+		       dedicatedNAS = dedNas->value.GetString();
+		     }
+
+		     std::cout << "DL & UL Info Transfer" << std::endl;
+		     ++itrr;
+		     const Value& obj_ = *itrr;
+		     std::string nas_message_type = handle_nas_outer_header(obj_);
+
+		     if (strcmp(nasAuthenticationRequest, nas_message_type.c_str()) == 0) { // If NAS Authentication Request
+		       handle_nas_authentication_request(original_msg, rrcTransactionIdentifier, dedicatedNAS, size, obj_);
+		       isNasAuthenticationRequest = 1;
+		     }
+
+		     else if (strcmp(nasSecurityModeCommand, nas_message_type.c_str()) == 0) { // If NAS Security Mode Command
+		       handle_nas_security_mode_command(original_msg, rrcTransactionIdentifier, dedicatedNAS, size, obj_);
+		       isNasSecurityModeCommand = 1;
+		     }
+
+		     else if (strcmp(nasAuthenticationResponse, nas_message_type.c_str()) == 0) { // If NAS Authentication Response
+		       isNasAuthenticationResponse = 1;
+
+		       handle_nas_authentication_response(original_msg, dedicatedNAS, size, obj_);
+		     }
+		   }
+
+		   /*
 		   else if (strcmp(dlInfoTransfer, content->name.GetString()) == 0 && size == 30) { // If DL Info Transfer with size 30 (NAS Security Mode Command)
 	             //std::cout << buf << std::endl;
                      const Value& obj7 = content->value;
@@ -302,6 +359,7 @@ uint8_t* jsonPacketMaker::json_to_packet(std::string buf, uint8_t* original_msg,
 		     handle_nas_authentication_request(original_msg, rrcTransactionIdentifier, dedicatedNAS, size, obj_);
 		     isNasAuthenticationRequest = 1;
 		   }
+		   */
 
 		   else if (strcmp(rrcSetup, content->name.GetString()) == 0) { // If RRC Setup
 		     const Value& obj7 = content->value;
@@ -613,13 +671,48 @@ void jsonPacketMaker::handle_rrc_security_mode_complete(uint8_t* original_msg, i
   pdu->set_timestamp();
 
   memcpy(&msg_buffer, original_msg, size);
-
-  //msg_buffer.channel = srsran::srb_to_lcid(srsran::nr_srb::srb1);
-  //msg_buffer.channel = buf.channel;
   memcpy(msg_buffer.msg, pdu->msg, pdu->N_bytes);
+  memcpy(msg_buffer_bytes, &msg_buffer, size);
 
-  //uint8_t msg_buffer_bytes[65535];
-  //msg_buffer_bytes = reinterpret_cast<uint8_t*>(&msg_buffer);
+  for (int i=0; i<size; i++) {
+    std::cout << std::to_string(msg_buffer_bytes[i]) << " ";
+  }
+  std::cout << "\n";
+}
+
+void jsonPacketMaker::handle_rrc_security_mode_failure(uint8_t* original_msg, int rrcTransactionIdentifier, int size) {
+  struct msg_struct {
+    uint32_t channel;
+    uint8_t msg[32768];
+  } msg_buffer;
+  
+  std::cout << "\n" << std::endl;
+  std::cout << "Spoofing RRC Security Mode Failure" << std::endl;
+  std::cout << "RRC Transaction Identifier: " << rrcTransactionIdentifier << std::endl;
+
+  asn1::rrc_nr::ul_dcch_msg_s ul_dcch_msg;
+  auto& smf = ul_dcch_msg.msg.set_c1().set_security_mode_fail();
+  smf.rrc_transaction_id = rrcTransactionIdentifier;
+  smf.crit_exts.set_security_mode_fail();
+
+  //asn1::json_writer *json_buf = new asn1::json_writer();
+  //ul_dcch_msg.to_json(*json_buf);
+  //std::cout << json_buf->to_string() << std::endl;
+
+  asn1::rrc_nr::ul_dcch_msg_s& msg = ul_dcch_msg;
+  srsran::unique_byte_buffer_t pdu = srsran::make_byte_buffer();
+  if (pdu == nullptr) {
+    std::cout << "pdu creation failed" << std::endl;
+  }
+
+  asn1::bit_ref bref(pdu->msg, pdu->get_tailroom());
+  msg.pack(bref);
+  bref.align_bytes_zero();
+  pdu->N_bytes = (uint32_t)bref.distance_bytes(pdu->msg);
+  pdu->set_timestamp();
+
+  memcpy(&msg_buffer, original_msg, size);
+  memcpy(msg_buffer.msg, pdu->msg, pdu->N_bytes);
   memcpy(msg_buffer_bytes, &msg_buffer, size);
 
   for (int i=0; i<size; i++) {
@@ -703,6 +796,304 @@ void jsonPacketMaker::handle_rrc_security_mode_command(uint8_t* original_msg, in
   std::cout << "\n";
 }
 
+void jsonPacketMaker::handle_rrc_reconfiguration(uint8_t* original_msg, int rrcTransactionIdentifier, int size, const rapidjson::Value& obj, const rapidjson::Value& obj2) {
+  struct msg_struct {
+    uint32_t channel;
+    uint8_t msg[32768];
+  } msg_buffer;
+
+  std::cout << "\n" << std::endl;
+  std::cout << "Spoofing RRC Reconfiguration" << std::endl;
+  std::cout << "RRC Transaction Identifier: " << rrcTransactionIdentifier << std::endl;
+
+  // Radio Bearer Config
+  int rbcfg_exist = 0;
+  int srb_identity = 0;
+  int pdu_session = 0;
+  int default_drb = 0;
+  int mappedQoS = 0;
+  int drb_identity = 0;
+
+  std::string sdap_headerDL = "";
+  std::string sdap_headerUL = "";
+  std::string discard_timer = "";
+  std::string pdcp_sn_sizeUL = "";
+  std::string pdcp_sn_sizeDL = "";
+  std::string t_reordering = "";
+  
+  // Non Critical Extension
+  std::string masterCellGroup = "";
+  std::string dedicatedNAS = "";
+
+  // Transform Reconfiguration JSON
+  for (Value::ConstMemberIterator rfg = obj.MemberBegin(); rfg != obj.MemberEnd(); ++rfg) {
+    std::cout << rfg->name.GetString() << std::endl;
+    if (strcmp(rfg->name.GetString(), "radioBearerConfig") == 0) {
+      rbcfg_exist = 1;
+      const Value& rb = rfg->value;
+
+      for(Value::ConstMemberIterator srbdrb = rb.MemberBegin(); srbdrb != rb.MemberEnd(); ++srbdrb) {
+        std::cout << srbdrb->name.GetString() << ": ";
+
+	if (strcmp(srbdrb->name.GetString(), "srb-ToAddModList") == 0) {
+	  const Value& obj2 = srbdrb->value;
+
+	  for(Value::ConstValueIterator srbIds = obj2.Begin(); srbIds != obj2.End(); ++srbIds) {
+            const Value& obj3 = *srbIds;
+
+	    for(Value::ConstMemberIterator srbId = obj3.MemberBegin(); srbId != obj3.MemberEnd(); ++srbId) {
+	      std::cout << srbId->name.GetString() << ": " << string_to_number(srbId->value) << " ";
+	      srb_identity = string_to_number(srbId->value);
+	    }
+	  }
+	}
+
+	else if (strcmp(srbdrb->name.GetString(), "drb-ToAddModList") == 0) {
+	  const Value& obj2 = srbdrb->value;
+
+	  for(Value::ConstValueIterator drbIds = obj2.Begin(); drbIds != obj2.End(); ++drbIds) {
+            const Value& obj3 = *drbIds;
+
+	    for(Value::ConstMemberIterator cnDrbPdcp = obj3.MemberBegin(); cnDrbPdcp != obj3.MemberEnd(); ++cnDrbPdcp) {
+              std::cout << cnDrbPdcp->name.GetString() << std::endl;
+
+	      if (strcmp(cnDrbPdcp->name.GetString(), "cnAssociation") == 0) {
+	        const Value& obj4 = cnDrbPdcp->value;
+
+	        for(Value::ConstMemberIterator sdaps = obj4.MemberBegin(); sdaps != obj4.MemberEnd(); ++sdaps) {
+                  std::cout << sdaps->name.GetString() << std::endl;
+
+		  const Value& obj5 = sdaps->value;
+
+		  for(Value::ConstMemberIterator sdap = obj5.MemberBegin(); sdap != obj5.MemberEnd(); ++sdap) {
+                    std::cout << sdap->name.GetString() << std::endl;
+
+		    if (strcmp(sdap->name.GetString(), "pdu-Session") == 0) {
+                      std::cout << string_to_number(sdap->value) << std::endl;
+		      pdu_session = string_to_number(sdap->value);
+		    }
+
+		    else if (strcmp(sdap->name.GetString(), "sdap-HeaderDL") == 0) {
+                      std::cout << sdap->value.GetString() << std::endl;
+		      sdap_headerDL = sdap->value.GetString();
+		    }
+
+		    else if (strcmp(sdap->name.GetString(), "sdap-HeaderUL") == 0) {
+                      std::cout << sdap->value.GetString() << std::endl;
+		      sdap_headerUL = sdap->value.GetString();
+		    }
+
+		    else if (strcmp(sdap->name.GetString(), "DefaultDRB") == 0) {
+                      std::cout << string_to_number(sdap->value) << std::endl;
+		      default_drb = string_to_number(sdap->value);
+		    }
+
+		    else if (strcmp(sdap->name.GetString(), "mappedQoS-FlowsToAdd") == 0) {
+		      const Value& obj6 = sdap->value;
+
+		      for(Value::ConstValueIterator qos = obj6.Begin(); qos != obj6.End(); ++qos) {
+                        std::cout << string_to_number(*qos) << std::endl;
+                        mappedQoS = string_to_number(*qos);
+		      }
+		    }
+		  }
+	        }
+	      }
+
+	      else if (strcmp(cnDrbPdcp->name.GetString(), "drb-Identity") == 0) {
+                std::cout << string_to_number(cnDrbPdcp->value) << std::endl;
+		drb_identity = string_to_number(cnDrbPdcp->value);
+	      }
+
+	      else if (strcmp(cnDrbPdcp->name.GetString(), "pdcp-Config") == 0) {
+                const Value& obj4 = cnDrbPdcp->value;
+
+		for(Value::ConstMemberIterator drbs = obj4.MemberBegin(); drbs != obj4.MemberEnd(); ++drbs) {
+                  std::cout << drbs->name.GetString() << std::endl;
+
+		  if (strcmp(drbs->name.GetString(), "drb") == 0) {
+
+		    const Value& obj5 = drbs->value;
+
+		    for(Value::ConstMemberIterator drb = obj5.MemberBegin(); drb != obj5.MemberEnd(); ++drb) {
+                      std::cout << drb->name.GetString() << std::endl;
+
+		      if (strcmp(drb->name.GetString(), "discardTimer") == 0) {
+                        std::cout << drb->value.GetString() << std::endl;
+
+			discard_timer = drb->value.GetString();
+		      }
+
+		      else if (strcmp(drb->name.GetString(), "pdcp-SN-SizeUL") == 0) {
+                        std::cout << drb->value.GetString() << std::endl;
+
+			pdcp_sn_sizeUL = drb->value.GetString();
+		      }
+
+		      else if (strcmp(drb->name.GetString(), "pdcp-SN-SizeDL") == 0) {
+                        std::cout << drb->value.GetString() << std::endl;
+
+			pdcp_sn_sizeDL = drb->value.GetString();
+		      }
+		    }
+		  }
+
+		  else if (strcmp(drbs->name.GetString(), "t-Reordering") == 0) {
+                    std::cout << drbs->value.GetString() << std::endl;
+                    t_reordering = drbs->value.GetString();
+		  }
+		}
+	      }
+	    }
+	  }
+	}
+      }
+    }
+    else if (strcmp(rfg->name.GetString(), "nonCriticalExtension") == 0) {
+      const Value& nce = rfg->value;
+
+      for(Value::ConstMemberIterator mcgNas = nce.MemberBegin(); mcgNas != nce.MemberEnd(); ++mcgNas) {
+        std::cout << mcgNas->name.GetString() << ": ";
+
+	if (strcmp(mcgNas->name.GetString(), "masterCellGroup") == 0) {
+          std::cout << mcgNas->value.GetString() << std::endl;
+          masterCellGroup = mcgNas->value.GetString();
+	}
+
+	else if (strcmp(mcgNas->name.GetString(), "dedicatedNAS-MessageList") == 0) {
+	  //std::cout << mcgNas->value.GetString() << std::endl;
+          //const Value& obj6 = mcgNas->value;
+
+	  /*
+	  for(Value::ConstValueIterator ded = obj6.Begin(); ded != obj6.End(); ++ded) {
+	    const Value& obj7 = *ded;
+
+	    for(Value::ConstMemberIterator dedd = obj7.MemberBegin(); dedd != obj7.MemberEnd(); ++dedd) {
+              std::cout << dedd->value.GetString() << std::endl;
+	    }
+	  }
+	  */
+	}
+      }
+    }
+  }
+
+  for (Value::ConstValueIterator itr = obj2.Begin(); itr != obj2.End(); ++itr) {
+    const Value& o = *itr;
+    for (Value::ConstMemberIterator mm = o.MemberBegin(); mm != o.MemberEnd(); ++mm) {
+      std::cout << mm->name.GetString() << ": " << std::endl;
+
+      const Value& obj2 = mm->value;
+      for (Value::ConstMemberIterator msg = obj2.MemberBegin(); msg != obj2.MemberEnd(); ++msg) {
+        std::cout << msg->name.GetString() << ": ";
+
+	if (strcmp(msg->name.GetString(), "PDU") == 0) {
+          std::cout << msg->value.GetString() << ", " << std::endl;
+	  dedicatedNAS = msg->value.GetString();
+	}
+      }
+    }
+  }
+
+  asn1::rrc_nr::dl_dcch_msg_s dl_dcch_msg;
+  dl_dcch_msg.msg.set_c1().set_rrc_recfg().rrc_transaction_id = rrcTransactionIdentifier;
+  asn1::rrc_nr::rrc_recfg_ies_s& ies = dl_dcch_msg.msg.c1().rrc_recfg().crit_exts.set_rrc_recfg();
+
+  if (rbcfg_exist == 1) {
+    ies.radio_bearer_cfg_present = true;
+
+    ies.radio_bearer_cfg.srb_to_add_mod_list.resize(1);
+    ies.radio_bearer_cfg.srb_to_add_mod_list[0].srb_id = srb_identity;
+
+    ies.radio_bearer_cfg.drb_to_add_mod_list.resize(1);
+    ies.radio_bearer_cfg.drb_to_add_mod_list[0].drb_id = drb_identity;
+
+    /*
+    if (strcmp(sdap_headerDL.c_str(), "") != 0) {
+      ies.radio_bearer_cfg.drb_to_add_mod_list[0].cn_assoc_present = true;
+      ies.radio_bearer_cfg.drb_to_add_mod_list[0].cn_assoc.sdap_cfg().pdu_session = pdu_session;
+    }
+
+    if (strcmp(discard_timer.c_str(), "") != 0) {
+      ies.radio_bearer_cfg.drb_to_add_mod_list[0].pdcp_cfg_present = true;
+      ies.radio_bearer_cfg.drb_to_add_mod_list[0].pdcp_cfg.drb_present = true;
+    }
+    */
+  }
+
+  if (strcmp(masterCellGroup.c_str(), "") != 0) {
+    ies.non_crit_ext_present = true;
+    ies.non_crit_ext.master_cell_group.resize(masterCellGroup.length());
+    ies.non_crit_ext.master_cell_group.from_string(masterCellGroup);
+  }
+
+  if (strcmp(dedicatedNAS.c_str(), "") != 0) {
+    ies.non_crit_ext_present = true;
+    ies.non_crit_ext.ded_nas_msg_list.resize(1);
+    ies.non_crit_ext.ded_nas_msg_list[0].resize(dedicatedNAS.length());
+    ies.non_crit_ext.ded_nas_msg_list[0].from_string(dedicatedNAS);
+  }
+
+  asn1::rrc_nr::dl_dcch_msg_s& msg = dl_dcch_msg;
+  srsran::unique_byte_buffer_t pdu = srsran::make_byte_buffer();
+  if (pdu == nullptr) {
+    std::cout << "pdu creation failed" << std::endl;
+  }
+
+  asn1::bit_ref bref(pdu->msg, pdu->get_tailroom());
+  msg.pack(bref);
+  bref.align_bytes_zero();
+  pdu->N_bytes = (uint32_t)bref.distance_bytes(pdu->msg);
+  pdu->set_timestamp();
+
+  memcpy(&msg_buffer, original_msg, size);
+  memcpy(msg_buffer.msg, pdu->msg, pdu->N_bytes);
+  memcpy(msg_buffer_bytes, &msg_buffer, size);
+
+  for (int i=0; i<size; i++) {
+    std::cout << std::to_string(msg_buffer_bytes[i]) << " ";
+  }
+  std::cout << "\n";
+
+}
+
+void jsonPacketMaker::handle_rrc_reconfiguration_complete(uint8_t* original_msg, int rrcTransactionIdentifier, int size) {
+  struct msg_struct {
+    uint32_t channel;
+    uint8_t msg[32768];
+  } msg_buffer;
+  
+  std::cout << "\n" << std::endl;
+  std::cout << "Spoofing RRC Reconfiguration Complete" << std::endl;
+  std::cout << "RRC Transaction Identifier: " << rrcTransactionIdentifier << std::endl;
+
+  asn1::rrc_nr::ul_dcch_msg_s ul_dcch_msg;
+  auto& rrc_recfg_complete = ul_dcch_msg.msg.set_c1().set_rrc_recfg_complete();
+  rrc_recfg_complete.rrc_transaction_id = rrcTransactionIdentifier;
+  rrc_recfg_complete.crit_exts.set_rrc_recfg_complete();
+
+  asn1::rrc_nr::ul_dcch_msg_s& msg = ul_dcch_msg;
+  srsran::unique_byte_buffer_t pdu = srsran::make_byte_buffer();
+  if (pdu == nullptr) {
+    std::cout << "pdu creation failed" << std::endl;
+  }
+
+  asn1::bit_ref bref(pdu->msg, pdu->get_tailroom());
+  msg.pack(bref);
+  bref.align_bytes_zero();
+  pdu->N_bytes = (uint32_t)bref.distance_bytes(pdu->msg);
+  pdu->set_timestamp();
+
+  memcpy(&msg_buffer, original_msg, size);
+  memcpy(msg_buffer.msg, pdu->msg, pdu->N_bytes);
+  memcpy(msg_buffer_bytes, &msg_buffer, size);
+
+  for (int i=0; i<size; i++) {
+    std::cout << std::to_string(msg_buffer_bytes[i]) << " ";
+  }
+  std::cout << "\n";
+}
+
 void jsonPacketMaker::handle_rrc_reject(uint8_t* original_msg, uint8_t waitTime, int size) {
   struct msg_struct {
     uint32_t channel;
@@ -729,8 +1120,48 @@ void jsonPacketMaker::handle_rrc_reject(uint8_t* original_msg, uint8_t waitTime,
   }
 
   asn1::json_writer *json_buf = new asn1::json_writer();
-  dl_ccch_msg.to_json(*json_buf);
-  std::cout << json_buf->to_string() << std::endl;
+  //dl_ccch_msg.to_json(*json_buf);
+  //std::cout << json_buf->to_string() << std::endl;
+
+  asn1::bit_ref bref(pdu->msg, pdu->get_tailroom());
+  msg.pack(bref);
+  bref.align_bytes_zero();
+  pdu->N_bytes = (uint32_t)bref.distance_bytes(pdu->msg);
+  pdu->set_timestamp();
+
+  memcpy(&msg_buffer, original_msg, size);
+  memcpy(msg_buffer.msg, pdu->msg, pdu->N_bytes);
+  memcpy(msg_buffer_bytes, &msg_buffer, size);
+
+  for (int i=0; i<size; i++) {
+    std::cout << std::to_string(msg_buffer_bytes[i]) << " ";
+  }
+  std::cout << "\n";
+}
+
+void jsonPacketMaker::handle_rrc_release(uint8_t* original_msg, int rrcTransactionIdentifier,int size) {
+  struct msg_struct {
+    uint32_t channel;
+    uint8_t msg[32768];
+  } msg_buffer;
+
+  std::cout << "\n" << std::endl;
+  std::cout << "Spoofing RRC Release" << std::endl;
+  std::cout << "RRC Transaction Identifier: " << rrcTransactionIdentifier << std::endl;
+
+  asn1::rrc_nr::dl_dcch_msg_s dl_dcch_msg;
+  asn1::rrc_nr::rrc_release_s& release = dl_dcch_msg.msg.set_c1().set_rrc_release();
+
+  release.rrc_transaction_id = rrcTransactionIdentifier;
+  asn1::rrc_nr::rrc_release_ies_s& ies = release.crit_exts.set_rrc_release();
+
+  ies.suspend_cfg_present = false;
+
+  asn1::rrc_nr::dl_dcch_msg_s& msg = dl_dcch_msg;
+  srsran::unique_byte_buffer_t pdu = srsran::make_byte_buffer();
+  if (pdu == nullptr) {
+    std::cout << "pdu creation failed" << std::endl;
+  }
 
   asn1::bit_ref bref(pdu->msg, pdu->get_tailroom());
   msg.pack(bref);
@@ -929,7 +1360,8 @@ void jsonPacketMaker::handle_rrc_setup_complete(uint8_t* original_msg, int rrcTr
   ul_dcch_msg.msg.c1().rrc_setup_complete().rrc_transaction_id = rrcTransactionIdentifier;
 
   rrc_setup_complete->sel_plmn_id = plmnIdentity;
-  rrc_setup_complete->registered_amf_present = false;
+  //rrc_setup_complete->registered_amf_present = false;
+  rrc_setup_complete->registered_amf_present = true;
   rrc_setup_complete->guami_type_present = false;
   rrc_setup_complete->ng_minus5_g_s_tmsi_value_present = false;
 
@@ -1566,6 +1998,10 @@ void jsonPacketMaker::handle_rrc_setup_complete(uint8_t* original_msg, int rrcTr
   }
 
   initial_registration_request_stored.pack(nas_msg);
+
+  if (strcmp(extended_protocol_discriminator.c_str(), "5gsm") == 0) { // 5GSM
+    nas_msg->msg[0] = 0x2e;
+  }
   
   rrc_setup_complete->ded_nas_msg.resize(nas_msg->N_bytes);
   memcpy(rrc_setup_complete->ded_nas_msg.data(), nas_msg->msg, nas_msg->N_bytes);
@@ -1794,9 +2230,15 @@ void jsonPacketMaker::handle_nas_authentication_request(uint8_t* original_msg, i
   }
 
   srsran::nas_5g::authentication_request_t& auth_req = initial_authentication_request_stored.set_authentication_request();
-  auth_req.authentication_parameter_rand_present = true;
-  auth_req.authentication_parameter_autn_present = true;
-  //auth_req.eap_message_present = true;
+
+  if (strcmp(rand_value.c_str(), "") != 0) {
+    auth_req.authentication_parameter_rand_present = true;
+  }
+
+  if (strcmp(autn_value.c_str(), "") != 0) {
+    auth_req.authentication_parameter_autn_present = true;
+  }
+
 
   // Security Context Flag
   if (strcmp(security_context_flag.c_str(), "native security context") == 0) {
@@ -1894,6 +2336,282 @@ void jsonPacketMaker::handle_nas_authentication_request(uint8_t* original_msg, i
     std::cout << std::to_string(msg_buffer_bytes[i]) << " ";
   }
   std::cout << "\n";
+}
+
+void jsonPacketMaker::handle_nas_authentication_response(uint8_t* original_msg, std::string dedicatedNas, int size, const rapidjson::Value& obj) {
+	/*
+  struct msg_struct {
+    uint32_t channel;
+    uint8_t msg[32768];
+  } msg_buffer;
+
+  std::cout << "\n";
+  std::cout << "Spoofing NAS Authentication Response" << std::endl;
+  std::cout << "Dedicated NAS Message: " << dedicatedNas << std::endl;
+  std::cout << "\n";
+  
+  // 5GS Mobility Management
+  std::string extended_protocol_discriminator = "";
+  std::string security_header_type = "";
+  std::string message_type = "";
+  std::string res_str = "";
+
+  // Transform NAS JSON into NAS Message
+  for (Value::ConstValueIterator itr = obj.Begin(); itr != obj.End(); ++itr) {
+    const Value& o = *itr;
+    for (Value::ConstMemberIterator mm = o.MemberBegin(); mm != o.MemberEnd(); ++mm) {
+      std::cout << mm->name.GetString() << ": " << std::endl;
+
+      const Value& obj2 = mm->value;
+      for (Value::ConstMemberIterator msg = obj2.MemberBegin(); msg != obj2.MemberEnd(); ++msg) {
+        std::cout << msg->name.GetString() << ": ";
+
+	if (strcmp(msg->name.GetString(), "Extended protocol discriminator") == 0) {
+          std::cout << msg->value.GetString() << ", " << std::endl;
+	  extended_protocol_discriminator = msg->value.GetString();
+	}
+
+	else if (strcmp(msg->name.GetString(), "Security header type") == 0) {
+          std::cout << msg->value.GetString() << ", " << std::endl;
+	  security_header_type = msg->value.GetString();
+	}
+
+	else if (strcmp(msg->name.GetString(), "Message type") == 0) {
+          std::cout << msg->value.GetString() << ", " << std::endl;
+	  message_type = msg->value.GetString();
+	}
+
+	else if (strcmp(msg->name.GetString(), "Authentication response") == 0) {
+          const Value& obj3 = msg->value;
+
+	  for (Value::ConstMemberIterator response = obj3.MemberBegin(); response != obj3.MemberEnd(); ++response) {
+            std::cout << response->name.GetString() << ": " << std::endl;
+
+	    if (strcmp(response->name.GetString(), "Authentication response parameter") == 0) {
+              const Value& obj4 = response->value;
+
+	      for (Value::ConstMemberIterator fields = obj4.MemberBegin(); fields != obj4.MemberEnd(); ++fields) {
+                std::cout << fields->name.GetString() << ": ";
+
+		if (strcmp(fields->name.GetString(), "RES") == 0) {
+                  std::cout << fields->value.GetString() << std::endl;
+
+		  res_str = fields->value.GetString();
+		}
+	      }
+	    }
+	  }
+	}
+      }
+    }
+  }
+
+  asn1::rrc_nr::ul_dcch_msg_s ul_dcch_msg;
+  asn1::rrc_nr::ul_info_transfer_ies_s* ul_info_transfer = &ul_dcch_msg.msg.set_c1().set_ul_info_transfer().crit_exts.set_ul_info_transfer();
+
+  srsran::unique_byte_buffer_t pdu = srsran::make_byte_buffer();
+  if (pdu == nullptr) {
+    std::cout << "pdu creation failed" << std::endl;
+  }
+
+  srsran::nas_5g::nas_5gs_msg nas_msg;
+
+  // Extended Protocol Discriminator
+  if (strcmp(extended_protocol_discriminator.c_str(), "5gmm") == 0) {
+    nas_msg.hdr.extended_protocol_discriminator = srsran::nas_5g::nas_5gs_hdr::extended_protocol_discriminator_opts::extended_protocol_discriminator_5gmm;
+  }
+
+  else {
+    nas_msg.hdr.extended_protocol_discriminator = srsran::nas_5g::nas_5gs_hdr::extended_protocol_discriminator_opts::extended_protocol_discriminator_5gsm;
+  }
+
+  // Security Header Type
+  if (strcmp(security_header_type.c_str(), "Plain 5gs nas message") == 0) {
+    nas_msg.hdr.security_header_type = srsran::nas_5g::nas_5gs_hdr::security_header_type_opts::plain_5gs_nas_message;
+  }
+
+  else if (strcmp(security_header_type.c_str(), "Integrity protected") == 0) {
+    nas_msg.hdr.security_header_type = srsran::nas_5g::nas_5gs_hdr::security_header_type_opts::integrity_protected;
+  }
+
+  else if (strcmp(security_header_type.c_str(), "Integrity protected and ciphered") == 0) {
+    nas_msg.hdr.security_header_type = srsran::nas_5g::nas_5gs_hdr::security_header_type_opts::integrity_protected_and_ciphered;
+  }
+
+  else if (strcmp(security_header_type.c_str(), "Integrity protected with new 5G nas context") == 0) {
+    nas_msg.hdr.security_header_type = srsran::nas_5g::nas_5gs_hdr::security_header_type_opts::integrity_protected_with_new_5G_nas_context;
+  }
+
+  else if (strcmp(security_header_type.c_str(), "Integrity protected and ciphered with new 5G nas context") == 0) {
+    nas_msg.hdr.security_header_type = srsran::nas_5g::nas_5gs_hdr::security_header_type_opts::integrity_protected_and_ciphered_with_new_5G_nas_context;
+  }
+
+  else {
+    nas_msg.hdr.security_header_type = srsran::nas_5g::nas_5gs_hdr::security_header_type_opts::plain_5gs_nas_message;
+  }
+
+  // Message Type (Only Uplink)
+  if (strcmp(message_type.c_str(), "Registration request") == 0) {
+    nas_msg.hdr.message_type = srsran::nas_5g::msg_opts::options::registration_request;
+  }
+
+  else if (strcmp(message_type.c_str(), "Registration complete") == 0) {
+    nas_msg.hdr.message_type = srsran::nas_5g::msg_opts::options::registration_complete;
+  }
+
+  else if (strcmp(message_type.c_str(), "Deregistration request ue originating") == 0) {
+    nas_msg.hdr.message_type = srsran::nas_5g::msg_opts::options::deregistration_request_ue_originating;
+  }
+
+  else if (strcmp(message_type.c_str(), "Deregistration accept ue originating") == 0) {
+    nas_msg.hdr.message_type = srsran::nas_5g::msg_opts::options::deregistration_accept_ue_originating;
+  }
+
+  else if (strcmp(message_type.c_str(), "Service request") == 0) {
+    nas_msg.hdr.message_type = srsran::nas_5g::msg_opts::options::service_request;
+  }
+
+  else if (strcmp(message_type.c_str(), "Authentication response") == 0) {
+    nas_msg.hdr.message_type = srsran::nas_5g::msg_opts::options::authentication_response;
+  }
+
+  else if (strcmp(message_type.c_str(), "Identity response") == 0) {
+    nas_msg.hdr.message_type = srsran::nas_5g::msg_opts::options::identity_response;
+  }
+
+  else if (strcmp(message_type.c_str(), "Security mode complete") == 0) {
+    nas_msg.hdr.message_type = srsran::nas_5g::msg_opts::options::security_mode_complete;
+  }
+
+  else if (strcmp(message_type.c_str(), "Security mode reject") == 0) {
+    nas_msg.hdr.message_type = srsran::nas_5g::msg_opts::options::security_mode_reject;
+  }
+
+  else if (strcmp(message_type.c_str(), "Ul nas transport") == 0) {
+    nas_msg.hdr.message_type = srsran::nas_5g::msg_opts::options::ul_nas_transport;
+  }
+
+  else {
+    nas_msg.hdr.message_type = srsran::nas_5g::msg_opts::options::nulltype;
+  }
+
+  srsran::nas_5g::authentication_response_t& auth_resp = nas_msg.set_authentication_response();
+
+  // Authentication Response Parameter (RES)
+  if (res_str.length() > 0) {
+    auth_resp.authentication_response_parameter_present = true;
+
+    if (res_str.length() > 32) {
+      res_str = res_str.substr(0, 32);
+    }
+
+    else if (res_str.length() < 32) {
+      int res_str_len = res_str.length();
+      for (int i=0; i<32-res_str_len; i++) {
+        res_str += "0";
+      }
+    }
+
+    std::cout << res_str << std::endl;
+
+    for (int i=0; i<(int)res_str.length()/2 + res_str.length()%2; i++) {
+      std::string sub = res_str.substr(i*2, 2);
+      std::istringstream buffer(sub);
+      uint64_t value;
+      buffer >> std::hex >> value;
+      auth_resp.authentication_response_parameter.res.push_back(value);
+    }
+  }
+
+  else {
+    auth_resp.authentication_response_parameter_present = false;
+  }
+
+  nas_msg.pack(pdu);
+
+  if (strcmp(extended_protocol_discriminator.c_str(), "5gsm") == 0) { // 5GSM
+    pdu->msg[0] = 0x2e;
+  }
+
+  ul_info_transfer->ded_nas_msg.resize(pdu->N_bytes);
+  memcpy(ul_info_transfer->ded_nas_msg.data(), pdu->msg, pdu->N_bytes);
+  
+  srsran::unique_byte_buffer_t pdu2 = srsran::make_byte_buffer();
+  if (pdu2 == nullptr) {
+    std::cout << "pdu2 creation failed" << std::endl;
+  }
+
+  asn1::bit_ref bref(pdu2->msg, pdu2->get_tailroom());
+  ul_dcch_msg.pack(bref);
+  bref.align_bytes_zero();
+  pdu2->N_bytes = (uint32_t)bref.distance_bytes(pdu2->msg);
+  pdu2->set_timestamp();
+
+  memcpy(&msg_buffer, original_msg, size);
+  memcpy(msg_buffer.msg, pdu2->msg, pdu2->N_bytes);
+  memcpy(msg_buffer_bytes, &msg_buffer, size);
+
+  for (int i=0; i<size; i++) {
+    std::cout << std::to_string(msg_buffer_bytes[i]) << " ";
+  }
+  std::cout << "\n";
+  */
+
+  // Testing...
+  struct msg_struct {
+    uint32_t channel;
+    uint8_t msg[32768];
+  } msg_buffer;
+
+  asn1::rrc_nr::ul_dcch_msg_s ul_dcch_msg;
+  asn1::rrc_nr::ul_info_transfer_ies_s* ul_info_transfer = &ul_dcch_msg.msg.set_c1().set_ul_info_transfer().crit_exts.set_ul_info_transfer();
+
+  srsran::unique_byte_buffer_t pdu = srsran::make_byte_buffer();
+  if (pdu == nullptr) {
+    std::cout << "pdu creation failed" << std::endl;
+  }
+
+  srsran::nas_5g::nas_5gs_msg nas_msg;
+  nas_msg.hdr.extended_protocol_discriminator = srsran::nas_5g::nas_5gs_hdr::extended_protocol_discriminator_opts::extended_protocol_discriminator_5gmm;
+  nas_msg.hdr.security_header_type = srsran::nas_5g::nas_5gs_hdr::security_header_type_opts::plain_5gs_nas_message;
+  nas_msg.hdr.message_type = srsran::nas_5g::msg_opts::options::security_mode_reject;
+
+  srsran::nas_5g::security_mode_reject_t& security_mode_reject = nas_msg.set_security_mode_reject();
+  security_mode_reject.cause_5gmm.cause_5gmm = (srsran::nas_5g::cause_5gmm_t::cause_5gmm_type_::options)0b00011000;
+
+  nas_msg.pack(pdu);
+
+  ul_info_transfer->ded_nas_msg.resize(pdu->N_bytes);
+  memcpy(ul_info_transfer->ded_nas_msg.data(), pdu->msg, pdu->N_bytes);
+  ul_info_transfer->ded_nas_msg[3] = 23;
+
+  srsran::unique_byte_buffer_t pdu2 = srsran::make_byte_buffer();
+  if (pdu2 == nullptr) {
+    std::cout << "pdu2 creation failed" << std::endl;
+  }
+
+  asn1::bit_ref bref(pdu2->msg, pdu2->get_tailroom());
+  ul_dcch_msg.pack(bref);
+  bref.align_bytes_zero();
+  pdu2->N_bytes = (uint32_t)bref.distance_bytes(pdu2->msg);
+  pdu2->set_timestamp();
+
+  memcpy(&msg_buffer, original_msg, size);
+  memcpy(msg_buffer.msg, pdu2->msg, pdu2->N_bytes);
+  memcpy(msg_buffer_bytes, &msg_buffer, size);
+
+  for (int i=0; i<size; i++) {
+    std::cout << std::to_string(msg_buffer_bytes[i]) << " ";
+  }
+  std::cout << "\n";
+
+  asn1::json_writer *json_buf = new asn1::json_writer();
+  json_buf->start_array();
+  int n=0;
+  int result = gNB::decode_packet(msg_buffer_bytes, n, *json_buf);
+  json_buf->end_array();
+  //ul_dcch_msg.to_json(*json_buf);
+  std::cout << json_buf->to_string() << std::endl;
 }
 
 void jsonPacketMaker::handle_nas_security_mode_command(uint8_t* original_msg, int rrcTransactionIdentifier, std::string dedicatedNAS, int size, const rapidjson::Value& obj) {
@@ -2398,6 +3116,34 @@ void jsonPacketMaker::handle_nas_security_mode_command(uint8_t* original_msg, in
   int result = gNB::decode_packet(msg_buffer_bytes, size, *json_buffer);
   json_buffer->end_array();
   std::cout << json_buffer->to_string() << std::endl;
+}
+
+std::string jsonPacketMaker::handle_nas_outer_header(const rapidjson::Value& obj) {
+  
+  std::string message_type = "";
+
+  for (Value::ConstValueIterator itr = obj.Begin(); itr != obj.End(); ++itr) {
+    const Value& o = *itr;
+    for (Value::ConstMemberIterator mm = o.MemberBegin(); mm != o.MemberEnd(); ++mm) {
+      std::cout << mm->name.GetString() << ": " << std::endl;
+
+      const Value& obj2 = mm->value;
+      for (Value::ConstMemberIterator msg = obj2.MemberBegin(); msg != obj2.MemberEnd(); ++msg) {
+        std::cout << msg->name.GetString() << ": ";
+
+	if (strcmp(msg->name.GetString(), "Message type") == 0) {
+          std::cout << msg->value.GetString() << ", " << std::endl;
+	  message_type = msg->value.GetString();
+	}
+
+	else if (strcmp(msg->name.GetString(), "Security mode command") == 0) {
+          message_type = msg->name.GetString();
+	}
+      }
+    }
+  }
+
+  return message_type;
 }
 
 int jsonPacketMaker::string_to_number(const Value& value) {
